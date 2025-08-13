@@ -23,281 +23,287 @@ const axiosInstance = axios.create({
 // Главная страница
 app.get('/', (req, res) => {
   res.send(`
-    <!DOCTYPE html>
-    <html lang="ru">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>🚀 Улучшенный Веб-Прокси</title>
-      <style>
-        * {
-          box-sizing: border-box;
-          margin: 0;
-          padding: 0;
-          font-family: Arial, sans-serif;
-        }
-        body {
-          background: linear-gradient(135deg, #1a2980, #26d0ce);
-          color: white;
-          min-height: 100vh;
-          padding: 20px;
-        }
-        .container {
-          max-width: 1000px;
-          margin: 40px auto;
-          background: rgba(0, 0, 0, 0.7);
-          border-radius: 15px;
-          padding: 30px;
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        }
-        h1 {
-          text-align: center;
-          margin-bottom: 25px;
-        }
-        .form-group {
-          margin-bottom: 25px;
-          display: flex;
-          gap: 10px;
-        }
-        input[type="text"] {
-          flex: 1;
-          padding: 15px;
-          font-size: 18px;
-          border: none;
-          border-radius: 50px;
-          background: rgba(255, 255, 255, 0.1);
-          color: white;
-          outline: none;
-        }
-        input::placeholder {
-          color: #aaa;
-        }
-        button {
-          padding: 15px 25px;
-          background: #3494e6;
-          color: white;
-          border: none;
-          border-radius: 50px;
-          font-size: 18px;
-          cursor: pointer;
-        }
-        .controls {
-          display: flex;
-          gap: 10px;
-          margin-bottom: 15px;
-          flex-wrap: wrap;
-        }
-        .controls button {
-          flex: 1;
-          min-width: 120px;
-        }
-        iframe {
-          width: 100%;
-          height: 70vh;
-          border: none;
-          border-radius: 10px;
-          background: white;
-        }
-        .loading {
-          display: none;
-          text-align: center;
-          padding: 20px;
-        }
-        .loader {
-          border: 5px solid #f3f3f3;
-          border-top: 5px solid #3498db;
-          border-radius: 50%;
-          width: 50px;
-          height: 50px;
-          animation: spin 2s linear infinite;
-          margin: 0 auto 20px;
-        }
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-        .error {
-          color: #ff6b6b;
-          text-align: center;
-          padding: 15px;
-          margin-top: 20px;
-          border-radius: 8px;
-          background: rgba(255, 0, 0, 0.1);
-        }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <h1>🚀 Улучшенный Веб-Прокси</h1>
-        
-        <div class="form-group">
-          <input 
-            type="text" 
-            id="urlInput" 
-            placeholder="https://google.com" 
-            autocomplete="off"
-            value="https://google.com"
-          >
-          <button id="openBtn">Открыть</button>
-        </div>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🚀 Исправленный Веб-Прокси</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+    body {
+      background: linear-gradient(135deg, #1a2980, #26d0ce);
+      color: white;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 40px auto;
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+    .form-group {
+      margin-bottom: 25px;
+      display: flex;
+      gap: 10px;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 15px;
+      font-size: 18px;
+      border: none;
+      border-radius: 50px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      outline: none;
+    }
+    input::placeholder {
+      color: #aaa;
+    }
+    button {
+      padding: 15px 25px;
+      background: #3494e6;
+      color: white;
+      border: none;
+      border-radius: 50px;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+    .controls button {
+      flex: 1;
+      min-width: 120px;
+    }
+    iframe {
+      width: 100%;
+      height: 70vh;
+      border: none;
+      border-radius: 10px;
+      background: white;
+    }
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 20px;
+    }
+    .loader {
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #3498db;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 2s linear infinite;
+      margin: 0 auto 20px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .error {
+      color: #ff6b6b;
+      text-align: center;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 8px;
+      background: rgba(255, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 Исправленный Веб-Прокси</h1>
+    
+    <div class="form-group">
+      <input 
+        type="text" 
+        id="urlInput" 
+        placeholder="https://google.com" 
+        autocomplete="off"
+        value="https://google.com"
+      >
+      <button id="openBtn">Открыть</button>
+    </div>
 
-        <div class="loading" id="loading">
-          <div class="loader"></div>
-          <p>Загружаем сайт, пожалуйста подождите...</p>
-        </div>
+    <div class="loading" id="loading">
+      <div class="loader"></div>
+      <p>Загружаем сайт, пожалуйста подождите...</p>
+    </div>
 
-        <div class="controls">
-          <button id="newTabBtn">Открыть в новой вкладке</button>
-          <button id="refreshBtn">Обновить страницу</button>
-        </div>
+    <div class="controls">
+      <button id="newTabBtn">Открыть в новой вкладке</button>
+      <button id="refreshBtn">Обновить страницу</button>
+    </div>
 
-        <iframe id="proxyFrame" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
+    <iframe id="proxyFrame" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
 
-        <div class="error" id="errorContainer"></div>
-      </div>
+    <div class="error" id="errorContainer"></div>
+  </div>
 
-      <script>
-        // Элементы страницы
-        const openBtn = document.getElementById('openBtn');
-        const urlInput = document.getElementById('urlInput');
-        const proxyFrame = document.getElementById('proxyFrame');
-        const loading = document.getElementById('loading');
-        const errorContainer = document.getElementById('errorContainer');
-        const newTabBtn = document.getElementById('newTabBtn');
-        const refreshBtn = document.getElementById('refreshBtn');
-        
-        // Текущий URL
-        let currentUrl = 'https://google.com';
-        
-        // Функция для загрузки URL
-        function loadUrl(url) {
-          // Показываем индикатор загрузки
-          loading.style.display = 'block';
-          errorContainer.style.display = 'none';
-          
-          // Обновляем текущий URL
-          currentUrl = url;
-          urlInput.value = url;
-          
-          // Устанавливаем URL в iframe
-          proxyFrame.src = '/proxy?url=' + encodeURIComponent(url);
-        }
-        
-        // Обработчик кнопки "Открыть"
-        openBtn.addEventListener('click', function() {
-          let url = urlInput.value.trim();
-          if (!url) {
-            showError('Пожалуйста, введите URL');
-            return;
-          }
-          
-          // Автокоррекция URL
-          if (!url.startsWith('http')) {
-            url = 'https://' + url;
-          }
-          
-          try {
-            new URL(url);
-            loadUrl(url);
-          } catch (e) {
-            showError('Некорректный URL. Пример: https://google.com');
-          }
-        });
-        
-        // Обработчики для iframe
-        proxyFrame.addEventListener('load', function() {
-          loading.style.display = 'none';
-          
-          // Вставляем скрипт для обработки навигации
-          const scriptContent = `
-            <script>
-              // Перехват кликов по ссылкам
-              document.addEventListener('click', function(e) {
-                let target = e.target;
-                while (target && target.tagName !== 'A') {
-                  target = target.parentNode;
+  <script>
+    // Элементы страницы
+    const openBtn = document.getElementById('openBtn');
+    const urlInput = document.getElementById('urlInput');
+    const proxyFrame = document.getElementById('proxyFrame');
+    const loading = document.getElementById('loading');
+    const errorContainer = document.getElementById('errorContainer');
+    const newTabBtn = document.getElementById('newTabBtn');
+    const refreshBtn = document.getElementById('refreshBtn');
+    
+    // Текущий URL
+    let currentUrl = 'https://google.com';
+    
+    // Функция для загрузки URL
+    function loadUrl(url) {
+      // Показываем индикатор загрузки
+      loading.style.display = 'block';
+      errorContainer.style.display = 'none';
+      
+      // Обновляем текущий URL
+      currentUrl = url;
+      urlInput.value = url;
+      
+      // Устанавливаем URL в iframe
+      proxyFrame.src = '/proxy?url=' + encodeURIComponent(url);
+    }
+    
+    // Обработчик кнопки "Открыть"
+    openBtn.addEventListener('click', function() {
+      let url = urlInput.value.trim();
+      if (!url) {
+        showError('Пожалуйста, введите URL');
+        return;
+      }
+      
+      // Автокоррекция URL
+      if (!url.startsWith('http')) {
+        url = 'https://' + url;
+      }
+      
+      try {
+        new URL(url);
+        loadUrl(url);
+      } catch (e) {
+        showError('Некорректный URL. Пример: https://google.com');
+      }
+    });
+    
+    // Обработчики для iframe
+    proxyFrame.addEventListener('load', function() {
+      loading.style.display = 'none';
+      
+      try {
+        // Вставляем скрипт для обработки навигации
+        const scriptContent = `
+          <script>
+            // Перехват кликов по ссылкам
+            document.addEventListener('click', function(e) {
+              let target = e.target;
+              while (target && target.tagName !== 'A') {
+                target = target.parentNode;
+              }
+              
+              if (target && target.tagName === 'A' && target.href) {
+                e.preventDefault();
+                window.parent.postMessage({
+                  type: 'navigate',
+                  url: target.href
+                }, '*');
+              }
+            });
+            
+            // Перехват отправки форм
+            document.addEventListener('submit', function(e) {
+              if (e.target.tagName === 'FORM') {
+                e.preventDefault();
+                const form = e.target;
+                const formData = new FormData(form);
+                const url = new URL(form.action);
+                
+                // Добавляем параметры формы
+                for (const [key, value] of formData.entries()) {
+                  url.searchParams.append(key, value);
                 }
                 
-                if (target && target.tagName === 'A' && target.href) {
-                  e.preventDefault();
-                  window.parent.postMessage({
-                    type: 'navigate',
-                    url: target.href
-                  }, '*');
-                }
-              });
-              
-              // Перехват отправки форм
-              document.addEventListener('submit', function(e) {
-                if (e.target.tagName === 'FORM') {
-                  e.preventDefault();
-                  const form = e.target;
-                  const formData = new FormData(form);
-                  const url = new URL(form.action);
-                  
-                  // Добавляем параметры формы
-                  for (const [key, value] of formData.entries()) {
-                    url.searchParams.append(key, value);
-                  }
-                  
-                  window.parent.postMessage({
-                    type: 'navigate',
-                    url: url.href
-                  }, '*');
-                }
-              });
-            </script>
-          `;
-          
-          // Внедряем скрипт в iframe
-          const iframeDoc = proxyFrame.contentDocument || proxyFrame.contentWindow.document;
-          iframeDoc.body.insertAdjacentHTML('beforeend', scriptContent);
-        });
+                window.parent.postMessage({
+                  type: 'navigate',
+                  url: url.href
+                }, '*');
+              }
+            });
+          <\/script>
+        `;
         
-        proxyFrame.addEventListener('error', function() {
-          showError('Не удалось загрузить сайт. Попробуйте другой URL.');
-          loading.style.display = 'none';
-        });
-        
-        // Обработка навигационных сообщений
-        window.addEventListener('message', function(event) {
-          if (event.data.type === 'navigate') {
-            try {
-              const newUrl = new URL(event.data.url);
-              loadUrl(newUrl.href);
-            } catch (e) {
-              showError('Некорректный URL для навигации');
-            }
-          }
-        });
-        
-        // Открыть в новой вкладке
-        newTabBtn.addEventListener('click', function() {
-          window.open(currentUrl, '_blank');
-        });
-        
-        // Обновить страницу
-        refreshBtn.addEventListener('click', function() {
-          proxyFrame.contentWindow.location.reload();
-        });
-        
-        // Показать ошибку
-        function showError(message) {
-          errorContainer.textContent = message;
-          errorContainer.style.display = 'block';
+        // Внедряем скрипт в iframe
+        const iframeDoc = proxyFrame.contentDocument || proxyFrame.contentWindow.document;
+        iframeDoc.body.insertAdjacentHTML('beforeend', scriptContent);
+      } catch (e) {
+        console.error('Ошибка при внедрении скрипта:', e);
+      }
+    });
+    
+    proxyFrame.addEventListener('error', function() {
+      showError('Не удалось загрузить сайт. Попробуйте другой URL.');
+      loading.style.display = 'none';
+    });
+    
+    // Обработка навигационных сообщений
+    window.addEventListener('message', function(event) {
+      if (event.data && event.data.type === 'navigate') {
+        try {
+          const newUrl = new URL(event.data.url);
+          loadUrl(newUrl.href);
+        } catch (e) {
+          showError('Некорректный URL для навигации');
         }
-        
-        // Автоматическая загрузка Google при старте
-        window.addEventListener('DOMContentLoaded', function() {
-          loadUrl('https://google.com');
-        });
-      </script>
-    </body>
-    </html>
+      }
+    });
+    
+    // Открыть в новой вкладке
+    newTabBtn.addEventListener('click', function() {
+      window.open(currentUrl, '_blank');
+    });
+    
+    // Обновить страницу
+    refreshBtn.addEventListener('click', function() {
+      if (proxyFrame.contentWindow) {
+        proxyFrame.contentWindow.location.reload();
+      }
+    });
+    
+    // Показать ошибку
+    function showError(message) {
+      errorContainer.textContent = message;
+      errorContainer.style.display = 'block';
+    }
+    
+    // Автоматическая загрузка Google при старте
+    window.addEventListener('DOMContentLoaded', function() {
+      loadUrl('https://google.com');
+    });
+  </script>
+</body>
+</html>
   `);
 });
 
-// Прокси-обработчик с улучшенной поддержкой ссылок и форм
+// Прокси-обработчик
 app.get('/proxy', async (req, res) => {
   try {
     let targetUrl = req.query.url;
@@ -339,8 +345,10 @@ app.get('/proxy', async (req, res) => {
         if (href && !href.startsWith('#')) {
           try {
             const absoluteUrl = new URL(href, targetUrl).href;
-            $(el).attr('href', absoluteUrl); // Оригинальная ссылка для обработки в JS
-          } catch (e) {}
+            $(el).attr('href', absoluteUrl);
+          } catch (e) {
+            console.log('Ошибка обработки ссылки:', href);
+          }
         }
       });
       
@@ -350,8 +358,10 @@ app.get('/proxy', async (req, res) => {
         if (action) {
           try {
             const absoluteUrl = new URL(action, targetUrl).href;
-            $(el).attr('action', absoluteUrl); // Оригинальный action
-          } catch (e) {}
+            $(el).attr('action', absoluteUrl);
+          } catch (e) {
+            console.log('Ошибка обработки формы:', action);
+          }
         }
       });
       
@@ -363,7 +373,9 @@ app.get('/proxy', async (req, res) => {
           try {
             const absoluteUrl = new URL(src, targetUrl).href;
             $(el).attr(attr, `/proxy?url=${encodeURIComponent(absoluteUrl)}`);
-          } catch (e) {}
+          } catch (e) {
+            console.log('Ошибка обработки ресурса:', src);
+          }
         }
       });
       
