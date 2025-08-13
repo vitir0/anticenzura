@@ -22,13 +22,13 @@ const axiosInstance = axios.create({
 
 // Главная страница
 app.get('/', (req, res) => {
-  res.send(`
+  const htmlContent = `
 <!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🚀 Исправленный Веб-Прокси</title>
+  <title>🚀 Рабочий Веб-Прокси</title>
   <style>
     * {
       box-sizing: border-box;
@@ -128,7 +128,7 @@ app.get('/', (req, res) => {
 </head>
 <body>
   <div class="container">
-    <h1>🚀 Исправленный Веб-Прокси</h1>
+    <h1>🚀 Рабочий Веб-Прокси</h1>
     
     <div class="form-group">
       <input 
@@ -210,49 +210,42 @@ app.get('/', (req, res) => {
       
       try {
         // Вставляем скрипт для обработки навигации
-        const scriptContent = `
-          <script>
-            // Перехват кликов по ссылкам
-            document.addEventListener('click', function(e) {
-              let target = e.target;
-              while (target && target.tagName !== 'A') {
-                target = target.parentNode;
-              }
-              
-              if (target && target.tagName === 'A' && target.href) {
-                e.preventDefault();
-                window.parent.postMessage({
-                  type: 'navigate',
-                  url: target.href
-                }, '*');
-              }
-            });
-            
-            // Перехват отправки форм
-            document.addEventListener('submit', function(e) {
-              if (e.target.tagName === 'FORM') {
-                e.preventDefault();
-                const form = e.target;
-                const formData = new FormData(form);
-                const url = new URL(form.action);
-                
-                // Добавляем параметры формы
-                for (const [key, value] of formData.entries()) {
-                  url.searchParams.append(key, value);
-                }
-                
-                window.parent.postMessage({
-                  type: 'navigate',
-                  url: url.href
-                }, '*');
-              }
-            });
-          <\/script>
-        `;
+        const scriptContent = '<script>' +
+          'document.addEventListener("click", function(e) {' +
+          '  let target = e.target;' +
+          '  while (target && target.tagName !== "A") {' +
+          '    target = target.parentNode;' +
+          '  }' +
+          '  if (target && target.tagName === "A" && target.href) {' +
+          '    e.preventDefault();' +
+          '    window.parent.postMessage({' +
+          '      type: "navigate",' +
+          '      url: target.href' +
+          '    }, "*");' +
+          '  }' +
+          '});' +
+          'document.addEventListener("submit", function(e) {' +
+          '  if (e.target.tagName === "FORM") {' +
+          '    e.preventDefault();' +
+          '    const form = e.target;' +
+          '    const formData = new FormData(form);' +
+          '    const url = new URL(form.action);' +
+          '    for (const [key, value] of formData.entries()) {' +
+          '      url.searchParams.append(key, value);' +
+          '    }' +
+          '    window.parent.postMessage({' +
+          '      type: "navigate",' +
+          '      url: url.href' +
+          '    }, "*");' +
+          '  }' +
+          '});' +
+          '<\\/script>';
         
         // Внедряем скрипт в iframe
         const iframeDoc = proxyFrame.contentDocument || proxyFrame.contentWindow.document;
-        iframeDoc.body.insertAdjacentHTML('beforeend', scriptContent);
+        const scriptElement = iframeDoc.createElement('div');
+        scriptElement.innerHTML = scriptContent;
+        iframeDoc.body.appendChild(scriptElement);
       } catch (e) {
         console.error('Ошибка при внедрении скрипта:', e);
       }
@@ -300,7 +293,9 @@ app.get('/', (req, res) => {
   </script>
 </body>
 </html>
-  `);
+  `;
+  
+  res.send(htmlContent);
 });
 
 // Прокси-обработчик
