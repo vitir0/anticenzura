@@ -6,7 +6,7 @@ const PORT = process.env.PORT || 3000;
 
 // Улучшенные настройки для обхода блокировок
 const axiosInstance = axios.create({
-  timeout: 10000,
+  timeout: 20000,
   headers: {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36',
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
@@ -29,7 +29,7 @@ app.get('/', (req, res) => {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>🚀 Универсальный Веб-Прокси</title>
+      <title>🚀 Улучшенный Веб-Прокси</title>
       <style>
         * {
           box-sizing: border-box;
@@ -127,9 +127,11 @@ app.get('/', (req, res) => {
           display: flex;
           gap: 10px;
           margin-bottom: 15px;
+          flex-wrap: wrap;
         }
         .controls button {
           flex: 1;
+          min-width: 120px;
         }
         #exitFullscreenBtn {
           background: linear-gradient(to right, #ff416c, #ff4b2b);
@@ -205,14 +207,22 @@ app.get('/', (req, res) => {
             font-size: 2rem;
           }
         }
+        .video-fallback {
+          display: none;
+          text-align: center;
+          padding: 20px;
+          background: rgba(0,0,0,0.5);
+          border-radius: 10px;
+          margin-top: 20px;
+        }
       </style>
     </head>
     <body>
       <div class="container">
-        <h1>🚀 Универсальный Веб-Прокси</h1>
+        <h1>🚀 Улучшенный Веб-Прокси</h1>
         
         <div class="description">
-          <p>Открывайте любые сайты через наш сервер. Работает с Google, YouTube и другими популярными сайтами</p>
+          <p>Теперь с поддержкой YouTube и Google поиска!</p>
         </div>
 
         <form id="proxyForm">
@@ -230,11 +240,10 @@ app.get('/', (req, res) => {
         </form>
 
         <div class="note">
-          <strong>Советы:</strong> 
+          <strong>Советы для YouTube:</strong> 
           <ul>
-            <li>Для поиска в Google: введите запрос в поисковую строку как обычно</li>
-            <li>Используйте кнопку "Полный экран" для лучшего просмотра</li>
-            <li>Некоторые сайты могут требовать дополнительной настройки</li>
+            <li>Используйте кнопку "Открыть видео" под плеером</li>
+            <li>Для мобильных устройств лучше использовать m.youtube.com</li>
           </ul>
         </div>
 
@@ -248,11 +257,16 @@ app.get('/', (req, res) => {
             <button id="fullscreenBtn">Полный экран</button>
             <button id="exitFullscreenBtn">Выйти из полноэкранного режима</button>
             <button id="newTabBtn">Открыть в новой вкладке</button>
+            <button id="refreshBtn">Обновить страницу</button>
           </div>
           <iframe 
             id="proxyFrame" 
             sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
           ></iframe>
+          <div class="video-fallback" id="videoFallback">
+            <h3>Видео не загружается?</h3>
+            <button id="directVideoBtn">Открыть видео напрямую</button>
+          </div>
         </div>
 
         <div class="error" id="errorContainer"></div>
@@ -267,7 +281,13 @@ app.get('/', (req, res) => {
         const fullscreenBtn = document.getElementById('fullscreenBtn');
         const exitFullscreenBtn = document.getElementById('exitFullscreenBtn');
         const newTabBtn = document.getElementById('newTabBtn');
+        const refreshBtn = document.getElementById('refreshBtn');
         const loading = document.getElementById('loading');
+        const videoFallback = document.getElementById('videoFallback');
+        const directVideoBtn = document.getElementById('directVideoBtn');
+        
+        // Сохраняем текущий URL для навигации
+        let currentUrl = '';
         
         // Обработка отправки формы
         proxyForm.addEventListener('submit', function(e) {
@@ -284,13 +304,22 @@ app.get('/', (req, res) => {
             loading.style.display = 'block';
             errorContainer.style.display = 'none';
             resultContainer.style.display = 'none';
+            videoFallback.style.display = 'none';
             
             // Проверяем и корректируем URL
             let validUrl = url;
             if (!validUrl.startsWith('http://') && !validUrl.startsWith('https://')) {
               validUrl = 'https://' + validUrl;
             }
-            new URL(validUrl); // Проверка валидности URL
+            currentUrl = validUrl;
+            
+            // Для YouTube используем мобильную версию
+            if (validUrl.includes('youtube.com') || validUrl.includes('youtu.be')) {
+              validUrl = validUrl
+                .replace('www.youtube.com', 'm.youtube.com')
+                .replace('youtube.com', 'm.youtube.com')
+                .replace('youtu.be', 'm.youtube.com/watch?v=');
+            }
             
             // Устанавливаем iframe
             proxyFrame.src = '/proxy?url=' + encodeURIComponent(validUrl);
@@ -306,6 +335,12 @@ app.get('/', (req, res) => {
           loading.style.display = 'none';
           resultContainer.style.display = 'block';
           errorContainer.style.display = 'none';
+          
+          // Показываем видео-фолбэк для YouTube
+          if (currentUrl.includes('youtube.com') || currentUrl.includes('youtu.be')) {
+            videoFallback.style.display = 'block';
+          }
+          
           resultContainer.scrollIntoView({ behavior: 'smooth' });
         });
         
@@ -337,15 +372,30 @@ app.get('/', (req, res) => {
         
         // Открыть в новой вкладке
         newTabBtn.addEventListener('click', function() {
-          const currentUrl = new URL(proxyFrame.src);
-          const targetUrl = decodeURIComponent(currentUrl.searchParams.get('url'));
-          window.open(targetUrl, '_blank');
+          window.open(currentUrl, '_blank');
         });
         
-        // Обработка сообщений от iframe (для Google и других сайтов)
+        // Обновить страницу
+        refreshBtn.addEventListener('click', function() {
+          proxyFrame.contentWindow.location.reload();
+        });
+        
+        // Открыть видео напрямую
+        directVideoBtn.addEventListener('click', function() {
+          if (currentUrl.includes('youtube.com') || currentUrl.includes('youtu.be')) {
+            const videoId = getYouTubeId(currentUrl);
+            if (videoId) {
+              const directUrl = 'https://www.youtube.com/embed/' + videoId;
+              proxyFrame.src = directUrl;
+            }
+          }
+        });
+        
+        // Обработка сообщений от iframe
         window.addEventListener('message', function(event) {
           if (event.data && event.data.type === 'navigation') {
             const newUrl = event.data.url;
+            currentUrl = newUrl;
             proxyFrame.src = '/proxy?url=' + encodeURIComponent(newUrl);
           }
         });
@@ -355,13 +405,19 @@ app.get('/', (req, res) => {
           errorContainer.style.display = 'block';
           resultContainer.style.display = 'none';
         }
+        
+        function getYouTubeId(url) {
+          const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+          const match = url.match(regExp);
+          return (match && match[2].length === 11) ? match[2] : null;
+        }
       </script>
     </body>
     </html>
   `);
 });
 
-// Прокси-обработчик с улучшенной поддержкой Google
+// Прокси-обработчик с улучшенной поддержкой Google и YouTube
 app.get('/proxy', async (req, res) => {
   try {
     let targetUrl = req.query.url;
@@ -375,6 +431,7 @@ app.get('/proxy', async (req, res) => {
       targetUrl = targetUrl.replace('facebook.com', 'm.facebook.com');
     }
     
+    // Обработка Google поиска
     if (targetUrl.includes('google.com/search')) {
       return handleGoogleSearch(res, targetUrl);
     }
@@ -437,6 +494,16 @@ app.get('/proxy', async (req, res) => {
         }
       });
       
+      // Для YouTube заменяем iframe на прямой видео-тег
+      if (targetUrl.includes('youtube.com') || targetUrl.includes('youtu.be')) {
+        $('body').prepend(`
+          <div style="text-align:center;padding:20px;background:#000;">
+            <h2 style="color:#fff;">YouTube через прокси</h2>
+            <p style="color:#aaa;">Если видео не загружается, используйте кнопку "Открыть видео"</p>
+          </div>
+        `);
+      }
+      
       // Инжектируем скрипт для обработки динамической навигации
       $('body').append(`
         <script>
@@ -491,6 +558,14 @@ app.get('/proxy', async (req, res) => {
       <div style="color: white; text-align: center; padding: 50px; background: rgba(255,0,0,0.2);">
         <h2>Ошибка прокси</h2>
         <p>${error.response?.status || 'Unknown'} - ${error.message}</p>
+        ${error.response?.status === 400 ? `
+          <p>Сайт заблокировал запрос через прокси. Попробуйте:</p>
+          <ul style="text-align: left; max-width: 500px; margin: 20px auto;">
+            <li>Мобильную версию сайта (m.example.com)</li>
+            <li>HTTP вместо HTTPS (если сайт поддерживает)</li>
+            <li>Другой сайт</li>
+          </ul>
+        ` : ''}
         <p><a href="/" style="color: #4dabf7;">Вернуться на главную</a></p>
       </div>
     `);
@@ -512,6 +587,10 @@ async function handleGoogleSearch(res, targetUrl) {
           const decodedUrl = decodeURIComponent(match[1]);
           $(el).attr('href', `/proxy?url=${encodeURIComponent(decodedUrl)}`);
         }
+      } else if (href && href.startsWith('/search?')) {
+        // Обработка ссылок внутри поиска
+        const absoluteUrl = new URL(href, 'https://www.google.com').href;
+        $(el).attr('href', `/proxy?url=${encodeURIComponent(absoluteUrl)}`);
       }
     });
     
@@ -534,6 +613,24 @@ async function handleGoogleSearch(res, targetUrl) {
         } catch (e) {}
       }
     });
+    
+    // Инжектируем скрипт для обработки навигации
+    $('body').append(`
+      <script>
+        // Перехват кликов по результатам поиска
+        document.querySelectorAll('a').forEach(link => {
+          link.addEventListener('click', function(e) {
+            if (this.href && this.href.includes('/url?q=')) {
+              e.preventDefault();
+              window.parent.postMessage({
+                type: 'navigation',
+                url: this.href
+              }, '*');
+            }
+          });
+        });
+      </script>
+    `);
     
     res.send($.html());
   } catch (error) {
