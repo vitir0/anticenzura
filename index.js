@@ -13,10 +13,6 @@ const axiosInstance = axios.create({
     'Accept-Language': 'en-US,en;q=0.5',
     'Connection': 'keep-alive',
     'Upgrade-Insecure-Requests': '1',
-    'Sec-Fetch-Dest': 'document',
-    'Sec-Fetch-Mode': 'navigate',
-    'Sec-Fetch-Site': 'none',
-    'Sec-Fetch-User': '?1',
     'Cache-Control': 'max-age=0'
   }
 });
@@ -29,7 +25,7 @@ app.get('/', (req, res) => {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>🚀 Улучшенный Веб-Прокси</title>
+      <title>🚀 Исправленный Веб-Прокси</title>
       <style>
         * {
           box-sizing: border-box;
@@ -120,7 +116,6 @@ app.get('/', (req, res) => {
         }
         .result-container {
           margin-top: 30px;
-          display: none;
           position: relative;
         }
         .controls {
@@ -151,6 +146,7 @@ app.get('/', (req, res) => {
           border: none;
           border-radius: 10px;
           background: white;
+          display: none;
         }
         .fullscreen {
           position: fixed;
@@ -208,42 +204,47 @@ app.get('/', (req, res) => {
           }
         }
         .video-fallback {
-          display: none;
           text-align: center;
           padding: 20px;
           background: rgba(0,0,0,0.5);
           border-radius: 10px;
           margin-top: 20px;
         }
+        #contentFrame {
+          display: block;
+          width: 100%;
+          height: 70vh;
+          border: none;
+          border-radius: 10px;
+        }
       </style>
     </head>
     <body>
       <div class="container">
-        <h1>🚀 Улучшенный Веб-Прокси</h1>
+        <h1>🚀 Исправленный Веб-Прокси</h1>
         
         <div class="description">
-          <p>Теперь с поддержкой YouTube и Google поиска!</p>
+          <p>Полностью переработанный механизм работы!</p>
         </div>
 
-        <form id="proxyForm">
-          <div class="form-group">
-            <input 
-              type="text" 
-              id="urlInput" 
-              placeholder="https://google.com" 
-              required
-              autocomplete="off"
-              value="https://google.com"
-            >
-            <button type="submit">Открыть</button>
-          </div>
-        </form>
+        <div class="form-group">
+          <input 
+            type="text" 
+            id="urlInput" 
+            placeholder="https://google.com" 
+            required
+            autocomplete="off"
+            value="https://google.com"
+          >
+          <button id="openBtn">Открыть</button>
+        </div>
 
         <div class="note">
-          <strong>Советы для YouTube:</strong> 
+          <strong>Исправлено:</strong> 
           <ul>
-            <li>Используйте кнопку "Открыть видео" под плеером</li>
-            <li>Для мобильных устройств лучше использовать m.youtube.com</li>
+            <li>Работа навигации в Google</li>
+            <li>Просмотр YouTube видео</li>
+            <li>Устранена циклическая перезагрузка</li>
           </ul>
         </div>
 
@@ -258,13 +259,12 @@ app.get('/', (req, res) => {
             <button id="exitFullscreenBtn">Выйти из полноэкранного режима</button>
             <button id="newTabBtn">Открыть в новой вкладке</button>
             <button id="refreshBtn">Обновить страницу</button>
+            <button id="backBtn">Назад</button>
           </div>
-          <iframe 
-            id="proxyFrame" 
-            sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
-          ></iframe>
+          <iframe id="proxyFrame" sandbox="allow-same-origin allow-scripts allow-forms allow-popups"></iframe>
+          <iframe id="contentFrame" sandbox="allow-same-origin allow-scripts allow-forms allow-popups"></iframe>
           <div class="video-fallback" id="videoFallback">
-            <h3>Видео не загружается?</h3>
+            <h3>Для просмотра видео на YouTube:</h3>
             <button id="directVideoBtn">Открыть видео напрямую</button>
           </div>
         </div>
@@ -273,25 +273,38 @@ app.get('/', (req, res) => {
       </div>
 
       <script>
-        const proxyForm = document.getElementById('proxyForm');
+        // Элементы DOM
+        const openBtn = document.getElementById('openBtn');
         const urlInput = document.getElementById('urlInput');
         const resultContainer = document.getElementById('resultContainer');
         const errorContainer = document.getElementById('errorContainer');
         const proxyFrame = document.getElementById('proxyFrame');
+        const contentFrame = document.getElementById('contentFrame');
         const fullscreenBtn = document.getElementById('fullscreenBtn');
         const exitFullscreenBtn = document.getElementById('exitFullscreenBtn');
         const newTabBtn = document.getElementById('newTabBtn');
         const refreshBtn = document.getElementById('refreshBtn');
+        const backBtn = document.getElementById('backBtn');
         const loading = document.getElementById('loading');
         const videoFallback = document.getElementById('videoFallback');
         const directVideoBtn = document.getElementById('directVideoBtn');
         
-        // Сохраняем текущий URL для навигации
+        // Состояние приложения
         let currentUrl = '';
+        let isUsingProxy = true;
+        let historyStack = [];
         
-        // Обработка отправки формы
-        proxyForm.addEventListener('submit', function(e) {
-          e.preventDefault();
+        // Инициализация
+        function init() {
+          // Скрыть ненужные элементы
+          proxyFrame.style.display = 'none';
+          contentFrame.style.display = 'none';
+          videoFallback.style.display = 'none';
+          errorContainer.style.display = 'none';
+        }
+        
+        // Обработчик кнопки "Открыть"
+        openBtn.addEventListener('click', function() {
           const url = urlInput.value.trim();
           
           if (!url) {
@@ -303,7 +316,6 @@ app.get('/', (req, res) => {
             // Показываем индикатор загрузки
             loading.style.display = 'block';
             errorContainer.style.display = 'none';
-            resultContainer.style.display = 'none';
             videoFallback.style.display = 'none';
             
             // Проверяем и корректируем URL
@@ -311,18 +323,13 @@ app.get('/', (req, res) => {
             if (!validUrl.startsWith('http://') && !validUrl.startsWith('https://')) {
               validUrl = 'https://' + validUrl;
             }
+            
+            // Сохраняем текущий URL
             currentUrl = validUrl;
+            historyStack.push(validUrl);
             
-            // Для YouTube используем мобильную версию
-            if (validUrl.includes('youtube.com') || validUrl.includes('youtu.be')) {
-              validUrl = validUrl
-                .replace('www.youtube.com', 'm.youtube.com')
-                .replace('youtube.com', 'm.youtube.com')
-                .replace('youtu.be', 'm.youtube.com/watch?v=');
-            }
-            
-            // Устанавливаем iframe
-            proxyFrame.src = '/proxy?url=' + encodeURIComponent(validUrl);
+            // Загружаем страницу
+            loadUrl(validUrl);
             
           } catch (err) {
             showError('Некорректный URL. Пример: https://google.com');
@@ -330,42 +337,69 @@ app.get('/', (req, res) => {
           }
         });
         
-        // Обработчики для iframe
-        proxyFrame.addEventListener('load', function() {
-          loading.style.display = 'none';
-          resultContainer.style.display = 'block';
-          errorContainer.style.display = 'none';
-          
-          // Показываем видео-фолбэк для YouTube
-          if (currentUrl.includes('youtube.com') || currentUrl.includes('youtu.be')) {
-            videoFallback.style.display = 'block';
+        // Функция загрузки URL
+        function loadUrl(url, isVideo = false) {
+          // Для YouTube используем специальную обработку
+          if ((url.includes('youtube.com') || url.includes('youtu.be')) && !isVideo) {
+            loadYouTube(url);
+            return;
           }
           
-          resultContainer.scrollIntoView({ behavior: 'smooth' });
+          // Используем основной фрейм
+          proxyFrame.style.display = 'block';
+          contentFrame.style.display = 'none';
+          
+          // Устанавливаем URL в прокси-фрейм
+          proxyFrame.src = '/proxy?url=' + encodeURIComponent(url);
+        }
+        
+        // Загрузка YouTube
+        function loadYouTube(url) {
+          const videoId = getYouTubeId(url);
+          if (videoId) {
+            // Показываем видео-фолбэк
+            videoFallback.style.display = 'block';
+            
+            // Прямая загрузка видео
+            proxyFrame.style.display = 'none';
+            contentFrame.style.display = 'block';
+            contentFrame.src = 'https://www.youtube.com/embed/' + videoId;
+          } else {
+            // Обычная загрузка через прокси
+            loadUrl(url);
+          }
+        }
+        
+        // Обработчики для фреймов
+        proxyFrame.addEventListener('load', function() {
+          loading.style.display = 'none';
+          errorContainer.style.display = 'none';
+          resultContainer.style.display = 'block';
         });
         
+        contentFrame.addEventListener('load', function() {
+          loading.style.display = 'none';
+          errorContainer.style.display = 'none';
+          resultContainer.style.display = 'block';
+        });
+        
+        // Обработка ошибок
         proxyFrame.addEventListener('error', function() {
-          showError('Не удалось загрузить сайт. Попробуйте другой URL.');
+          showError('Не удалось загрузить сайт через прокси. Попробуйте другой URL.');
           loading.style.display = 'none';
         });
         
         // Полноэкранный режим
         fullscreenBtn.addEventListener('click', function() {
           const container = document.querySelector('.container');
-          const iframeContainer = document.getElementById('resultContainer');
-          
           container.classList.add('fullscreen');
-          iframeContainer.classList.add('fullscreen');
           fullscreenBtn.style.display = 'none';
           exitFullscreenBtn.style.display = 'block';
         });
         
         exitFullscreenBtn.addEventListener('click', function() {
           const container = document.querySelector('.container');
-          const iframeContainer = document.getElementById('resultContainer');
-          
           container.classList.remove('fullscreen');
-          iframeContainer.classList.remove('fullscreen');
           fullscreenBtn.style.display = 'block';
           exitFullscreenBtn.style.display = 'none';
         });
@@ -377,7 +411,21 @@ app.get('/', (req, res) => {
         
         // Обновить страницу
         refreshBtn.addEventListener('click', function() {
-          proxyFrame.contentWindow.location.reload();
+          if (contentFrame.style.display === 'block') {
+            contentFrame.contentWindow.location.reload();
+          } else {
+            proxyFrame.contentWindow.location.reload();
+          }
+        });
+        
+        // Кнопка "Назад"
+        backBtn.addEventListener('click', function() {
+          if (historyStack.length > 1) {
+            historyStack.pop(); // Удаляем текущий URL
+            const prevUrl = historyStack.pop();
+            urlInput.value = prevUrl;
+            loadUrl(prevUrl);
+          }
         });
         
         // Открыть видео напрямую
@@ -385,8 +433,12 @@ app.get('/', (req, res) => {
           if (currentUrl.includes('youtube.com') || currentUrl.includes('youtu.be')) {
             const videoId = getYouTubeId(currentUrl);
             if (videoId) {
+              loading.style.display = 'block';
               const directUrl = 'https://www.youtube.com/embed/' + videoId;
-              proxyFrame.src = directUrl;
+              proxyFrame.style.display = 'none';
+              contentFrame.style.display = 'block';
+              contentFrame.src = directUrl;
+              videoFallback.style.display = 'none';
             }
           }
         });
@@ -396,28 +448,34 @@ app.get('/', (req, res) => {
           if (event.data && event.data.type === 'navigation') {
             const newUrl = event.data.url;
             currentUrl = newUrl;
-            proxyFrame.src = '/proxy?url=' + encodeURIComponent(newUrl);
+            historyStack.push(newUrl);
+            loadUrl(newUrl);
           }
         });
         
+        // Показать ошибку
         function showError(message) {
           errorContainer.textContent = message;
           errorContainer.style.display = 'block';
-          resultContainer.style.display = 'none';
+          loading.style.display = 'none';
         }
         
+        // Получить YouTube ID
         function getYouTubeId(url) {
-          const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+          const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
           const match = url.match(regExp);
           return (match && match[2].length === 11) ? match[2] : null;
         }
+        
+        // Инициализация при загрузке
+        window.addEventListener('DOMContentLoaded', init);
       </script>
     </body>
     </html>
   `);
 });
 
-// Прокси-обработчик с улучшенной поддержкой Google и YouTube
+// Прокси-обработчик с исправлениями
 app.get('/proxy', async (req, res) => {
   try {
     let targetUrl = req.query.url;
@@ -453,7 +511,7 @@ app.get('/proxy', async (req, res) => {
         if (href && !href.startsWith('#') && !href.startsWith('javascript:')) {
           try {
             const absoluteUrl = new URL(href, targetUrl).href;
-            $(el).attr('href', `/proxy?url=${encodeURIComponent(absoluteUrl)}`);
+            $(el).attr('href', `javascript:parent.navigateTo('${absoluteUrl}')`);
           } catch (e) {}
         }
       });
@@ -489,24 +547,37 @@ app.get('/proxy', async (req, res) => {
         if (action) {
           try {
             const absoluteUrl = new URL(action, targetUrl).href;
-            $(el).attr('action', `/proxy?url=${encodeURIComponent(absoluteUrl)}`);
+            $(el).attr('action', `javascript:parent.submitForm(this)`);
+            $(el).attr('data-action', absoluteUrl);
           } catch (e) {}
         }
       });
       
-      // Для YouTube заменяем iframe на прямой видео-тег
-      if (targetUrl.includes('youtube.com') || targetUrl.includes('youtu.be')) {
-        $('body').prepend(`
-          <div style="text-align:center;padding:20px;background:#000;">
-            <h2 style="color:#fff;">YouTube через прокси</h2>
-            <p style="color:#aaa;">Если видео не загружается, используйте кнопку "Открыть видео"</p>
-          </div>
-        `);
-      }
-      
-      // Инжектируем скрипт для обработки динамической навигации
+      // Инжектируем скрипт для обработки навигации
       $('body').append(`
         <script>
+          // Глобальная функция для навигации
+          function navigateTo(url) {
+            window.parent.postMessage({
+              type: 'navigation',
+              url: url
+            }, '*');
+          }
+          
+          // Обработка форм
+          function submitForm(form) {
+            const url = form.getAttribute('data-action');
+            const formData = new FormData(form);
+            const params = new URLSearchParams();
+            
+            for (const [key, value] of formData.entries()) {
+              params.append(key, value);
+            }
+            
+            const fullUrl = url + '?' + params.toString();
+            navigateTo(fullUrl);
+          }
+          
           // Перехват кликов
           document.addEventListener('click', function(e) {
             let target = e.target;
@@ -516,30 +587,7 @@ app.get('/proxy', async (req, res) => {
             
             if (target && target.tagName === 'A' && target.href) {
               e.preventDefault();
-              window.parent.postMessage({
-                type: 'navigation',
-                url: target.href
-              }, '*');
-            }
-          });
-          
-          // Перехват форм
-          document.addEventListener('submit', function(e) {
-            if (e.target.tagName === 'FORM') {
-              e.preventDefault();
-              const form = e.target;
-              const formData = new FormData(form);
-              const url = new URL(form.action);
-              
-              // Создаем URL с параметрами
-              for (const [key, value] of formData.entries()) {
-                url.searchParams.append(key, value);
-              }
-              
-              window.parent.postMessage({
-                type: 'navigation',
-                url: url.href
-              }, '*');
+              navigateTo(target.href);
             }
           });
         </script>
@@ -558,14 +606,6 @@ app.get('/proxy', async (req, res) => {
       <div style="color: white; text-align: center; padding: 50px; background: rgba(255,0,0,0.2);">
         <h2>Ошибка прокси</h2>
         <p>${error.response?.status || 'Unknown'} - ${error.message}</p>
-        ${error.response?.status === 400 ? `
-          <p>Сайт заблокировал запрос через прокси. Попробуйте:</p>
-          <ul style="text-align: left; max-width: 500px; margin: 20px auto;">
-            <li>Мобильную версию сайта (m.example.com)</li>
-            <li>HTTP вместо HTTPS (если сайт поддерживает)</li>
-            <li>Другой сайт</li>
-          </ul>
-        ` : ''}
         <p><a href="/" style="color: #4dabf7;">Вернуться на главную</a></p>
       </div>
     `);
@@ -585,12 +625,12 @@ async function handleGoogleSearch(res, targetUrl) {
         const match = href.match(/\/url\?q=([^&]+)/);
         if (match && match[1]) {
           const decodedUrl = decodeURIComponent(match[1]);
-          $(el).attr('href', `/proxy?url=${encodeURIComponent(decodedUrl)}`);
+          $(el).attr('href', `javascript:parent.navigateTo('${decodedUrl}')`);
         }
       } else if (href && href.startsWith('/search?')) {
         // Обработка ссылок внутри поиска
         const absoluteUrl = new URL(href, 'https://www.google.com').href;
-        $(el).attr('href', `/proxy?url=${encodeURIComponent(absoluteUrl)}`);
+        $(el).attr('href', `javascript:parent.navigateTo('${absoluteUrl}')`);
       }
     });
     
@@ -599,7 +639,8 @@ async function handleGoogleSearch(res, targetUrl) {
       const action = $(el).attr('action');
       if (action && action.startsWith('/search')) {
         const absoluteUrl = new URL(action, 'https://www.google.com').href;
-        $(el).attr('action', `/proxy?url=${encodeURIComponent(absoluteUrl)}`);
+        $(el).attr('action', `javascript:parent.submitForm(this)`);
+        $(el).attr('data-action', absoluteUrl);
       }
     });
     
@@ -622,10 +663,7 @@ async function handleGoogleSearch(res, targetUrl) {
           link.addEventListener('click', function(e) {
             if (this.href && this.href.includes('/url?q=')) {
               e.preventDefault();
-              window.parent.postMessage({
-                type: 'navigation',
-                url: this.href
-              }, '*');
+              navigateTo(this.href);
             }
           });
         });
@@ -638,10 +676,6 @@ async function handleGoogleSearch(res, targetUrl) {
       <div style="text-align: center; padding: 30px;">
         <h2>Не удалось загрузить Google</h2>
         <p>Попробуйте снова или используйте другую поисковую систему</p>
-        <a href="/" style="display: inline-block; margin-top: 20px; padding: 10px 20px; 
-          background: #4285F4; color: white; text-decoration: none;">
-          Попробовать снова
-        </a>
       </div>
     `);
   }
