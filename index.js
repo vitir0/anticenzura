@@ -4,7 +4,6 @@ const cheerio = require('cheerio');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Настройки запросов
 const axiosInstance = axios.create({
   timeout: 30000,
   headers: {
@@ -14,7 +13,6 @@ const axiosInstance = axios.create({
   }
 });
 
-// Главная страница
 app.get('/', (req, res) => {
   res.send(`
 <!DOCTYPE html>
@@ -22,32 +20,46 @@ app.get('/', (req, res) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🚀 Полнофункциональный Веб-Прокси</title>
+  <title>🛡️ Freedom Proxy - Обход цензуры</title>
   <style>
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     body {
-      background: linear-gradient(135deg, #1a2980, #26d0ce);
-      color: white;
+      background: linear-gradient(135deg, #000000, #1a1a1a);
+      color: #f0f0f0;
       min-height: 100vh;
       padding: 20px;
+      background-attachment: fixed;
     }
     .container {
       max-width: 1000px;
       margin: 20px auto;
-      background: rgba(0, 0, 0, 0.7);
-      border-radius: 10px;
-      padding: 20px;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+      background: rgba(10, 10, 10, 0.95);
+      border-radius: 8px;
+      padding: 25px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+      border: 1px solid #333;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #333;
     }
     h1 {
-      text-align: center;
-      margin-bottom: 20px;
-      font-size: 24px;
+      font-size: 28px;
+      margin-bottom: 5px;
+      color: #fff;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    }
+    .subtitle {
+      color: #bbb;
+      font-size: 16px;
+      margin-bottom: 15px;
     }
     .form-group {
       margin-bottom: 20px;
@@ -56,26 +68,42 @@ app.get('/', (req, res) => {
     }
     input[type="text"] {
       flex: 1;
-      padding: 12px;
+      padding: 14px;
       font-size: 16px;
-      border: none;
-      border-radius: 5px;
-      background: rgba(255, 255, 255, 0.1);
-      color: white;
+      border: 1px solid #333;
+      border-radius: 6px;
+      background: rgba(30, 30, 30, 0.9);
+      color: #fff;
       outline: none;
+      transition: all 0.3s;
+    }
+    input[type="text"]:focus {
+      border-color: #555;
+      box-shadow: 0 0 0 2px rgba(100, 100, 100, 0.3);
     }
     input::placeholder {
-      color: #aaa;
+      color: #777;
     }
     button {
-      padding: 12px 20px;
-      background: #3494e6;
-      color: white;
-      border: none;
-      border-radius: 5px;
+      padding: 14px 22px;
+      background: linear-gradient(to bottom, #222, #111);
+      color: #fff;
+      border: 1px solid #333;
+      border-radius: 6px;
       font-size: 16px;
+      font-weight: 600;
       cursor: pointer;
       min-width: 100px;
+      transition: all 0.3s;
+      text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+    }
+    button:hover {
+      background: linear-gradient(to bottom, #333, #222);
+      border-color: #444;
+    }
+    button:active {
+      background: linear-gradient(to bottom, #111, #000);
+      transform: translateY(1px);
     }
     .controls {
       display: flex;
@@ -85,17 +113,19 @@ app.get('/', (req, res) => {
     iframe {
       width: 100%;
       height: 70vh;
-      border: none;
-      border-radius: 5px;
-      background: white;
+      border: 1px solid #333;
+      border-radius: 6px;
+      background: #000;
     }
     .error {
-      color: #ff6b6b;
+      color: #ff4d4d;
       text-align: center;
       padding: 15px;
       margin-top: 20px;
-      border-radius: 5px;
+      border-radius: 6px;
       background: rgba(255, 0, 0, 0.1);
+      border: 1px solid rgba(255, 0, 0, 0.2);
+      display: none;
     }
     .loading {
       text-align: center;
@@ -103,8 +133,8 @@ app.get('/', (req, res) => {
       display: none;
     }
     .loader {
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #3498db;
+      border: 4px solid rgba(255, 255, 255, 0.1);
+      border-top: 4px solid #fff;
       border-radius: 50%;
       width: 40px;
       height: 40px;
@@ -115,36 +145,61 @@ app.get('/', (req, res) => {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+    .logo {
+      font-size: 36px;
+      margin-bottom: 10px;
+      text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+    }
+    .info {
+      background: rgba(30, 30, 30, 0.7);
+      border-left: 4px solid #555;
+      padding: 12px;
+      margin-top: 20px;
+      border-radius: 0 6px 6px 0;
+      font-size: 14px;
+      color: #aaa;
+    }
+    .info strong {
+      color: #ddd;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>🚀 Полнофункциональный Веб-Прокси</h1>
+    <header>
+      <div class="logo">🛡️</div>
+      <h1>Freedom Proxy</h1>
+      <div class="subtitle">Анонимный доступ к интернету без ограничений</div>
+    </header>
     
     <div class="form-group">
       <input 
         type="text" 
         id="urlInput" 
-        placeholder="https://google.com" 
+        placeholder="Введите URL или поисковый запрос..." 
         autocomplete="off"
-        value="https://google.com"
       >
-      <button id="openBtn">Открыть</button>
+      <button id="openBtn">Перейти</button>
     </div>
 
     <div class="loading" id="loading">
       <div class="loader"></div>
-      <p>Загрузка...</p>
+      <p>Загрузка контента через защищенное соединение...</p>
     </div>
 
     <div class="controls">
-      <button id="newTabBtn">Новая вкладка</button>
+      <button id="newTabBtn">Открыть напрямую</button>
       <button id="refreshBtn">Обновить</button>
     </div>
 
     <iframe id="proxyFrame" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
 
     <div class="error" id="errorContainer"></div>
+    
+    <div class="info">
+      <strong>Как использовать:</strong> Введите URL сайта или поисковый запрос (например, "как приготовить яйца"). 
+      Все запросы автоматически направляются через защищенное соединение.
+    </div>
   </div>
 
   <script>
@@ -157,34 +212,63 @@ app.get('/', (req, res) => {
       const newTabBtn = document.getElementById('newTabBtn');
       const refreshBtn = document.getElementById('refreshBtn');
       
-      // Показать ошибку
       function showError(message) {
         errorContainer.textContent = message;
         errorContainer.style.display = 'block';
         loading.style.display = 'none';
       }
       
-      // Загрузить URL
-      function loadUrl(url) {
+      function isUrl(str) {
+        try {
+          new URL(str);
+          return true;
+        } catch (_) {
+          return false;
+        }
+      }
+      
+      function isSearchQuery(str) {
+        return !isUrl(str) && str.trim().length > 0;
+      }
+      
+      function createGoogleSearchUrl(query) {
+        return 'https://www.google.com/search?q=' + encodeURIComponent(query);
+      }
+      
+      function loadUrl(input) {
         loading.style.display = 'block';
         errorContainer.style.display = 'none';
         
-        // Автокоррекция URL
-        if (!url.startsWith('http')) {
-          url = 'https://' + url;
-        }
+        let targetUrl = input.trim();
         
-        proxyFrame.src = '/proxy?url=' + encodeURIComponent(url);
-      }
-      
-      // Обработчики событий
-      openBtn.addEventListener('click', function() {
-        const url = urlInput.value.trim();
-        if (!url) {
-          showError('Введите URL');
+        if (!targetUrl) {
+          showError('Введите URL или поисковый запрос');
           return;
         }
-        loadUrl(url);
+        
+        // Автокоррекция URL
+        if (!targetUrl.startsWith('http') && !targetUrl.includes('://')) {
+          targetUrl = 'https://' + targetUrl;
+        }
+        
+        // Если это не URL, а поисковый запрос
+        if (isSearchQuery(targetUrl)) {
+          targetUrl = createGoogleSearchUrl(targetUrl);
+        }
+        
+        proxyFrame.src = '/proxy?url=' + encodeURIComponent(targetUrl);
+      }
+      
+      openBtn.addEventListener('click', function() {
+        const input = urlInput.value;
+        loadUrl(input);
+      });
+      
+      urlInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          const input = urlInput.value;
+          loadUrl(input);
+        }
       });
       
       proxyFrame.addEventListener('load', function() {
@@ -192,22 +276,28 @@ app.get('/', (req, res) => {
       });
       
       proxyFrame.addEventListener('error', function() {
-        showError('Ошибка загрузки сайта');
+        showError('Ошибка загрузки сайта. Возможно, ресурс заблокирован или недоступен.');
       });
       
       newTabBtn.addEventListener('click', function() {
-        const url = urlInput.value.trim();
-        if (url) {
-          window.open(url, '_blank');
+        const input = urlInput.value.trim();
+        if (!input) return;
+        
+        let targetUrl = input;
+        if (isSearchQuery(targetUrl)) {
+          targetUrl = createGoogleSearchUrl(targetUrl);
+        } else if (!targetUrl.startsWith('http')) {
+          targetUrl = 'https://' + targetUrl;
         }
+        
+        window.open(targetUrl, '_blank');
       });
       
       refreshBtn.addEventListener('click', function() {
-        proxyFrame.contentWindow.location.reload();
+        if (proxyFrame.src && proxyFrame.src !== 'about:blank') {
+          proxyFrame.contentWindow.location.reload();
+        }
       });
-      
-      // Загрузить Google по умолчанию
-      loadUrl('https://google.com');
     });
   </script>
 </body>
@@ -215,93 +305,76 @@ app.get('/', (req, res) => {
   `);
 });
 
-// Обработчик для всех путей
 app.get('*', async (req, res) => {
   try {
-    // Получаем полный URL из запроса
-    const fullUrl = req.originalUrl.substring(1); // Убираем первый слэш
+    const fullUrl = req.originalUrl.substring(1);
     const decodedUrl = decodeURIComponent(fullUrl);
     
     console.log('Запрос к прокси:', decodedUrl);
     
-    // Если это запрос к корню
     if (decodedUrl === '') {
       return res.redirect('/');
     }
     
-    // Если это запрос к /proxy?url=...
     if (decodedUrl.startsWith('proxy?')) {
       return handleProxyRequest(req, res);
     }
     
-    // Если это прямой запрос к ресурсу
     return handleDirectRequest(res, decodedUrl);
     
   } catch (error) {
     console.error('Ошибка обработки запроса:', error);
     res.status(500).send(`
-      <div style="color: white; text-align: center; padding: 20px;">
+      <div style="color: white; text-align: center; padding: 20px; background: rgba(0,0,0,0.8);">
         <h3>Ошибка прокси</h3>
         <p>${error.message}</p>
-        <p><a href="/">Вернуться на главную</a></p>
+        <p><a href="/" style="color: #4da6ff;">Вернуться на главную</a></p>
       </div>
     `);
   }
 });
 
-// Обработчик прокси-запросов
 async function handleProxyRequest(req, res) {
   try {
     const targetUrl = req.query.url;
     if (!targetUrl) return res.redirect('/');
 
-    // Автокоррекция URL
     const finalUrl = targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`;
     
     console.log('Проксирование URL:', finalUrl);
     
-    // Загружаем контент
     const response = await axiosInstance.get(finalUrl, {
       responseType: 'arraybuffer',
       maxRedirects: 10,
       validateStatus: status => status < 500
     });
     
-    // Определяем Content-Type
     const contentType = response.headers['content-type'] || 'text/html';
     
-    // Если это HTML, обрабатываем ссылки
     if (contentType.includes('text/html')) {
       const html = response.data.toString('utf-8');
       const $ = cheerio.load(html);
       
-      // Обработка всех ссылок
       $('a[href]').each((i, el) => {
         const href = $(el).attr('href');
         if (href && !href.startsWith('#')) {
           try {
             const absoluteUrl = new URL(href, finalUrl).href;
             $(el).attr('href', `/${encodeURIComponent(absoluteUrl)}`);
-          } catch (e) {
-            // Оставляем оригинальную ссылку
-          }
+          } catch (e) {}
         }
       });
       
-      // Обработка форм
       $('form[action]').each((i, el) => {
         const action = $(el).attr('action');
         if (action) {
           try {
             const absoluteUrl = new URL(action, finalUrl).href;
             $(el).attr('action', `/${encodeURIComponent(absoluteUrl)}`);
-          } catch (e) {
-            // Оставляем оригинальный action
-          }
+          } catch (e) {}
         }
       });
       
-      // Обработка ресурсов
       $('link[href], script[src], img[src], iframe[src]').each((i, el) => {
         const attr = $(el).attr('href') ? 'href' : 'src';
         const src = $(el).attr(attr);
@@ -309,56 +382,49 @@ async function handleProxyRequest(req, res) {
           try {
             const absoluteUrl = new URL(src, finalUrl).href;
             $(el).attr(attr, `/proxy?url=${encodeURIComponent(absoluteUrl)}`);
-          } catch (e) {
-            // Оставляем оригинальный ресурс
-          }
+          } catch (e) {}
         }
       });
       
       res.set('Content-Type', contentType);
       res.send($.html());
     } else {
-      // Для не-HTML контента
       res.set('Content-Type', contentType);
       res.send(response.data);
     }
   } catch (error) {
     console.error('Ошибка проксирования:', error.message);
     res.status(500).send(`
-      <div style="color: white; text-align: center; padding: 20px;">
+      <div style="color: white; text-align: center; padding: 20px; background: rgba(0,0,0,0.8);">
         <h3>Ошибка прокси</h3>
         <p>${error.message}</p>
-        <p><a href="/">Вернуться на главную</a></p>
+        <p><a href="/" style="color: #4da6ff;">Вернуться на главную</a></p>
       </div>
     `);
   }
 }
 
-// Обработчик прямых запросов
 async function handleDirectRequest(res, decodedUrl) {
   try {
     console.log('Прямой запрос к:', decodedUrl);
     
-    // Загружаем контент
     const response = await axiosInstance.get(decodedUrl, {
       responseType: 'arraybuffer',
       maxRedirects: 10,
       validateStatus: status => status < 500
     });
     
-    // Определяем Content-Type
     const contentType = response.headers['content-type'] || 'application/octet-stream';
     
-    // Отправляем контент
     res.set('Content-Type', contentType);
     res.send(response.data);
   } catch (error) {
     console.error('Ошибка прямого запроса:', error.message);
     res.status(500).send(`
-      <div style="color: white; text-align: center; padding: 20px;">
+      <div style="color: white; text-align: center; padding: 20px; background: rgba(0,0,0,0.8);">
         <h3>Ошибка загрузки ресурса</h3>
         <p>${error.message}</p>
-        <p><a href="/">Вернуться на главную</a></p>
+        <p><a href="/" style="color: #4da6ff;">Вернуться на главную</a></p>
       </div>
     `);
   }
