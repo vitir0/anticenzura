@@ -4,28 +4,23 @@ const cheerio = require('cheerio');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Добавим middleware для CORS
+// Middleware для CORS
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
   next();
 });
 
-// Улучшенные настройки для обхода блокировок
+// Настройки запросов
 const axiosInstance = axios.create({
-  timeout: 30000, // Увеличим таймаут
+  timeout: 30000,
   headers: {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36',
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-    'Accept-Language': 'en-US,en;q=0.5',
-    'Accept-Encoding': 'gzip, deflate, br',
-    'Connection': 'keep-alive',
-    'Cache-Control': 'no-cache',
-    'Pragma': 'no-cache'
+    'Accept-Language': 'en-US,en;q=0.5'
   }
 });
 
-// Главная страница с формой
+// Главная страница
 app.get('/', (req, res) => {
   res.send(`
     <!DOCTYPE html>
@@ -33,7 +28,7 @@ app.get('/', (req, res) => {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>🚀 Рабочий Веб-Прокси</title>
+      <title>🚀 Улучшенный Веб-Прокси</title>
       <style>
         * {
           box-sizing: border-box;
@@ -133,7 +128,7 @@ app.get('/', (req, res) => {
     </head>
     <body>
       <div class="container">
-        <h1>🚀 Рабочий Веб-Прокси</h1>
+        <h1>🚀 Улучшенный Веб-Прокси</h1>
         
         <div class="form-group">
           <input 
@@ -141,7 +136,7 @@ app.get('/', (req, res) => {
             id="urlInput" 
             placeholder="https://google.com" 
             autocomplete="off"
-            value="https://example.com"
+            value="https://google.com"
           >
           <button id="openBtn">Открыть</button>
         </div>
@@ -162,7 +157,7 @@ app.get('/', (req, res) => {
       </div>
 
       <script>
-        // Упрощенный и надежный вариант
+        // Элементы страницы
         const openBtn = document.getElementById('openBtn');
         const urlInput = document.getElementById('urlInput');
         const proxyFrame = document.getElementById('proxyFrame');
@@ -171,29 +166,18 @@ app.get('/', (req, res) => {
         const newTabBtn = document.getElementById('newTabBtn');
         const refreshBtn = document.getElementById('refreshBtn');
         
-        // Функция для проверки URL
-        function isValidUrl(url) {
-          try {
-            new URL(url);
-            return true;
-          } catch {
-            return false;
-          }
-        }
+        // Текущий URL
+        let currentUrl = 'https://google.com';
         
-        // Функция для коррекции URL
-        function fixUrl(url) {
-          if (!url.startsWith('http')) {
-            return 'https://' + url;
-          }
-          return url;
-        }
-        
-        // Основная функция загрузки
+        // Функция для загрузки URL
         function loadUrl(url) {
           // Показываем индикатор загрузки
           loading.style.display = 'block';
           errorContainer.style.display = 'none';
+          
+          // Обновляем текущий URL
+          currentUrl = url;
+          urlInput.value = url;
           
           // Устанавливаем URL в iframe
           proxyFrame.src = '/proxy?url=' + encodeURIComponent(url);
@@ -207,19 +191,67 @@ app.get('/', (req, res) => {
             return;
           }
           
-          url = fixUrl(url);
-          
-          if (!isValidUrl(url)) {
-            showError('Некорректный URL. Пример: https://google.com');
-            return;
+          // Автокоррекция URL
+          if (!url.startsWith('http')) {
+            url = 'https://' + url;
           }
           
-          loadUrl(url);
+          try {
+            new URL(url);
+            loadUrl(url);
+          } catch (e) {
+            showError('Некорректный URL. Пример: https://google.com');
+          }
         });
         
         // Обработчики для iframe
         proxyFrame.addEventListener('load', function() {
           loading.style.display = 'none';
+          
+          // Вставляем скрипт для обработки навигации
+          const scriptContent = `
+            <script>
+              // Перехват кликов по ссылкам
+              document.addEventListener('click', function(e) {
+                let target = e.target;
+                while (target && target.tagName !== 'A') {
+                  target = target.parentNode;
+                }
+                
+                if (target && target.tagName === 'A' && target.href) {
+                  e.preventDefault();
+                  window.parent.postMessage({
+                    type: 'navigate',
+                    url: target.href
+                  }, '*');
+                }
+              });
+              
+              // Перехват отправки форм
+              document.addEventListener('submit', function(e) {
+                if (e.target.tagName === 'FORM') {
+                  e.preventDefault();
+                  const form = e.target;
+                  const formData = new FormData(form);
+                  const url = new URL(form.action);
+                  
+                  // Добавляем параметры формы
+                  for (const [key, value] of formData.entries()) {
+                    url.searchParams.append(key, value);
+                  }
+                  
+                  window.parent.postMessage({
+                    type: 'navigate',
+                    url: url.href
+                  }, '*');
+                }
+              });
+            </script>
+          `;
+          
+          // Внедряем скрипт в iframe
+          const iframeDoc = proxyFrame.contentDocument || proxyFrame.contentWindow.document;
+          iframeDoc.body.insertAdjacentHTML('beforeend', scriptContent);
         });
         
         proxyFrame.addEventListener('error', function() {
@@ -227,19 +259,26 @@ app.get('/', (req, res) => {
           loading.style.display = 'none';
         });
         
+        // Обработка навигационных сообщений
+        window.addEventListener('message', function(event) {
+          if (event.data.type === 'navigate') {
+            try {
+              const newUrl = new URL(event.data.url);
+              loadUrl(newUrl.href);
+            } catch (e) {
+              showError('Некорректный URL для навигации');
+            }
+          }
+        });
+        
         // Открыть в новой вкладке
         newTabBtn.addEventListener('click', function() {
-          const url = urlInput.value.trim();
-          if (url && isValidUrl(fixUrl(url))) {
-            window.open(fixUrl(url), '_blank');
-          }
+          window.open(currentUrl, '_blank');
         });
         
         // Обновить страницу
         refreshBtn.addEventListener('click', function() {
-          if (proxyFrame.src) {
-            proxyFrame.contentWindow.location.reload();
-          }
+          proxyFrame.contentWindow.location.reload();
         });
         
         // Показать ошибку
@@ -248,9 +287,9 @@ app.get('/', (req, res) => {
           errorContainer.style.display = 'block';
         }
         
-        // Автоматическая загрузка при старте
+        // Автоматическая загрузка Google при старте
         window.addEventListener('DOMContentLoaded', function() {
-          loadUrl('https://example.com');
+          loadUrl('https://google.com');
         });
       </script>
     </body>
@@ -258,14 +297,13 @@ app.get('/', (req, res) => {
   `);
 });
 
-// Упрощенный и надежный прокси-обработчик
+// Прокси-обработчик с улучшенной поддержкой ссылок и форм
 app.get('/proxy', async (req, res) => {
   try {
     let targetUrl = req.query.url;
     console.log('Запрос прокси для URL:', targetUrl);
     
     if (!targetUrl) {
-      console.error('Ошибка: URL не предоставлен');
       return res.status(400).send('URL is required');
     }
 
@@ -278,63 +316,70 @@ app.get('/proxy', async (req, res) => {
     try {
       new URL(targetUrl);
     } catch (e) {
-      console.error('Некорректный URL:', targetUrl);
       return res.status(400).send('Invalid URL');
     }
-    
-    console.log('Исправленный URL:', targetUrl);
     
     // Загружаем контент
     const response = await axiosInstance.get(targetUrl, {
       responseType: 'arraybuffer',
       maxRedirects: 10,
-      validateStatus: () => true // Принимаем все статусы
+      validateStatus: () => true
     });
     
-    console.log(`Статус ответа: ${response.status} для ${targetUrl}`);
-    
     const contentType = response.headers['content-type'] || 'text/html';
-    console.log('Content-Type:', contentType);
     
-    // Если это HTML, обрабатываем базовые ссылки
+    // Если это HTML, обрабатываем ссылки и формы
     if (contentType.includes('text/html')) {
       const html = response.data.toString('utf-8');
       const $ = cheerio.load(html);
       
-      // Простая обработка ссылок
+      // Обработка ссылок
       $('a[href]').each((i, el) => {
         const href = $(el).attr('href');
         if (href && !href.startsWith('#')) {
           try {
             const absoluteUrl = new URL(href, targetUrl).href;
-            $(el).attr('href', `/proxy?url=${encodeURIComponent(absoluteUrl)}`);
-          } catch (e) {
-            // Игнорируем невалидные URL
-          }
+            $(el).attr('href', absoluteUrl); // Оригинальная ссылка для обработки в JS
+          } catch (e) {}
+        }
+      });
+      
+      // Обработка форм
+      $('form[action]').each((i, el) => {
+        const action = $(el).attr('action');
+        if (action) {
+          try {
+            const absoluteUrl = new URL(action, targetUrl).href;
+            $(el).attr('action', absoluteUrl); // Оригинальный action
+          } catch (e) {}
+        }
+      });
+      
+      // Обработка ресурсов
+      $('link[href], script[src], img[src], iframe[src]').each((i, el) => {
+        const attr = $(el).attr('href') ? 'href' : 'src';
+        const src = $(el).attr(attr);
+        if (src) {
+          try {
+            const absoluteUrl = new URL(src, targetUrl).href;
+            $(el).attr(attr, `/proxy?url=${encodeURIComponent(absoluteUrl)}`);
+          } catch (e) {}
         }
       });
       
       res.set('Content-Type', contentType);
       res.send($.html());
     } else {
-      // Для не-HTML контента возвращаем как есть
+      // Для не-HTML контента
       res.set('Content-Type', contentType);
       res.send(response.data);
     }
   } catch (error) {
     console.error('Ошибка прокси:', error);
-    
-    let errorMessage = 'Произошла ошибка';
-    if (error.response) {
-      errorMessage = `Сайт вернул ошибку ${error.response.status}`;
-    } else if (error.request) {
-      errorMessage = 'Не удалось получить ответ от сайта';
-    }
-    
     res.status(500).send(`
       <div style="color: white; text-align: center; padding: 50px;">
         <h2>Ошибка прокси</h2>
-        <p>${errorMessage}</p>
+        <p>${error.message}</p>
         <p><a href="/" style="color: #4dabf7;">Вернуться на главную</a></p>
       </div>
     `);
@@ -343,5 +388,4 @@ app.get('/proxy', async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Сервер запущен на порту ${PORT}`);
-  console.log(`Откройте в браузере: http://localhost:${PORT}`);
 });
