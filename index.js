@@ -1,5 +1,6 @@
 const express = require('express');
 const axios = require('axios');
+const cheerio = require('cheerio');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -21,7 +22,7 @@ app.get('/', (req, res) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🚀 Простой Веб-Прокси</title>
+  <title>🚀 Полнофункциональный Веб-Прокси</title>
   <style>
     * {
       box-sizing: border-box;
@@ -30,7 +31,7 @@ app.get('/', (req, res) => {
       font-family: Arial, sans-serif;
     }
     body {
-      background: #1a2980;
+      background: linear-gradient(135deg, #1a2980, #26d0ce);
       color: white;
       min-height: 100vh;
       padding: 20px;
@@ -118,7 +119,7 @@ app.get('/', (req, res) => {
 </head>
 <body>
   <div class="container">
-    <h1>🚀 Простой Веб-Прокси</h1>
+    <h1>🚀 Полнофункциональный Веб-Прокси</h1>
     
     <div class="form-group">
       <input 
@@ -191,7 +192,7 @@ app.get('/', (req, res) => {
       });
       
       proxyFrame.addEventListener('error', function() {
-        showError('Ошибка загрузки');
+        showError('Ошибка загрузки сайта');
       });
       
       newTabBtn.addEventListener('click', function() {
@@ -214,19 +215,53 @@ app.get('/', (req, res) => {
   `);
 });
 
-// Прокси-обработчик
-app.get('/proxy', async (req, res) => {
+// Обработчик для всех путей
+app.get('*', async (req, res) => {
   try {
-    let targetUrl = req.query.url;
-    if (!targetUrl) return res.status(400).send('URL required');
-
-    // Автокоррекция URL
-    if (!targetUrl.startsWith('http')) {
-      targetUrl = 'https://' + targetUrl;
+    // Получаем полный URL из запроса
+    const fullUrl = req.originalUrl.substring(1); // Убираем первый слэш
+    const decodedUrl = decodeURIComponent(fullUrl);
+    
+    console.log('Запрос к прокси:', decodedUrl);
+    
+    // Если это запрос к корню
+    if (decodedUrl === '') {
+      return res.redirect('/');
     }
     
+    // Если это запрос к /proxy?url=...
+    if (decodedUrl.startsWith('proxy?')) {
+      return handleProxyRequest(req, res);
+    }
+    
+    // Если это прямой запрос к ресурсу
+    return handleDirectRequest(res, decodedUrl);
+    
+  } catch (error) {
+    console.error('Ошибка обработки запроса:', error);
+    res.status(500).send(`
+      <div style="color: white; text-align: center; padding: 20px;">
+        <h3>Ошибка прокси</h3>
+        <p>${error.message}</p>
+        <p><a href="/">Вернуться на главную</a></p>
+      </div>
+    `);
+  }
+});
+
+// Обработчик прокси-запросов
+async function handleProxyRequest(req, res) {
+  try {
+    const targetUrl = req.query.url;
+    if (!targetUrl) return res.redirect('/');
+
+    // Автокоррекция URL
+    const finalUrl = targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`;
+    
+    console.log('Проксирование URL:', finalUrl);
+    
     // Загружаем контент
-    const response = await axiosInstance.get(targetUrl, {
+    const response = await axiosInstance.get(finalUrl, {
       responseType: 'arraybuffer',
       maxRedirects: 10,
       validateStatus: status => status < 500
@@ -235,22 +270,99 @@ app.get('/proxy', async (req, res) => {
     // Определяем Content-Type
     const contentType = response.headers['content-type'] || 'text/html';
     
-    // Устанавливаем заголовки
-    res.set('Content-Type', contentType);
-    
-    // Возвращаем контент как есть
-    res.send(response.data);
+    // Если это HTML, обрабатываем ссылки
+    if (contentType.includes('text/html')) {
+      const html = response.data.toString('utf-8');
+      const $ = cheerio.load(html);
+      
+      // Обработка всех ссылок
+      $('a[href]').each((i, el) => {
+        const href = $(el).attr('href');
+        if (href && !href.startsWith('#')) {
+          try {
+            const absoluteUrl = new URL(href, finalUrl).href;
+            $(el).attr('href', `/${encodeURIComponent(absoluteUrl)}`);
+          } catch (e) {
+            // Оставляем оригинальную ссылку
+          }
+        }
+      });
+      
+      // Обработка форм
+      $('form[action]').each((i, el) => {
+        const action = $(el).attr('action');
+        if (action) {
+          try {
+            const absoluteUrl = new URL(action, finalUrl).href;
+            $(el).attr('action', `/${encodeURIComponent(absoluteUrl)}`);
+          } catch (e) {
+            // Оставляем оригинальный action
+          }
+        }
+      });
+      
+      // Обработка ресурсов
+      $('link[href], script[src], img[src], iframe[src]').each((i, el) => {
+        const attr = $(el).attr('href') ? 'href' : 'src';
+        const src = $(el).attr(attr);
+        if (src) {
+          try {
+            const absoluteUrl = new URL(src, finalUrl).href;
+            $(el).attr(attr, `/proxy?url=${encodeURIComponent(absoluteUrl)}`);
+          } catch (e) {
+            // Оставляем оригинальный ресурс
+          }
+        }
+      });
+      
+      res.set('Content-Type', contentType);
+      res.send($.html());
+    } else {
+      // Для не-HTML контента
+      res.set('Content-Type', contentType);
+      res.send(response.data);
+    }
   } catch (error) {
-    console.error('Proxy error:', error.message);
+    console.error('Ошибка проксирования:', error.message);
     res.status(500).send(`
       <div style="color: white; text-align: center; padding: 20px;">
         <h3>Ошибка прокси</h3>
         <p>${error.message}</p>
-        <p><a href="/">Вернуться</a></p>
+        <p><a href="/">Вернуться на главную</a></p>
       </div>
     `);
   }
-});
+}
+
+// Обработчик прямых запросов
+async function handleDirectRequest(res, decodedUrl) {
+  try {
+    console.log('Прямой запрос к:', decodedUrl);
+    
+    // Загружаем контент
+    const response = await axiosInstance.get(decodedUrl, {
+      responseType: 'arraybuffer',
+      maxRedirects: 10,
+      validateStatus: status => status < 500
+    });
+    
+    // Определяем Content-Type
+    const contentType = response.headers['content-type'] || 'application/octet-stream';
+    
+    // Отправляем контент
+    res.set('Content-Type', contentType);
+    res.send(response.data);
+  } catch (error) {
+    console.error('Ошибка прямого запроса:', error.message);
+    res.status(500).send(`
+      <div style="color: white; text-align: center; padding: 20px;">
+        <h3>Ошибка загрузки ресурса</h3>
+        <p>${error.message}</p>
+        <p><a href="/">Вернуться на главную</a></p>
+      </div>
+    `);
+  }
+}
 
 app.listen(PORT, () => {
   console.log(`Сервер запущен: http://localhost:${PORT}`);
