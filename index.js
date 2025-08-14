@@ -30,7 +30,7 @@ app.get('/', (req, res) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🛡️ Freedom Proxy - Обход цензуры</title>
+  <title>🛡️ anticenzura - Обход цензуры</title>
   <style>
     * {
       box-sizing: border-box;
@@ -241,7 +241,7 @@ app.get('/', (req, res) => {
 <body>
   <div class="search-container">
     <div class="logo">🛡️</div>
-    <h1>Freedom Proxy - Обход цензуры</h1>
+    <h1>anticenzura - Обход цензуры</h1>
     
     <div class="search-box">
       <input 
@@ -256,8 +256,8 @@ app.get('/', (req, res) => {
 
     <div class="description">
       <strong>Анонимный доступ к интернету без ограничений</strong><br>
-      Введите URL сайта или поисковый запрос (например, "как приготовить яйца"). 
-      Все поисковые запросы выполняются через Bing.
+      Введите URL сайта (например, "bing.com"). 
+      Все поисковые запросы выполняются через Bing
     </div>
   </div>
 
