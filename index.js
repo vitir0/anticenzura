@@ -247,7 +247,7 @@ app.get('/', (req, res) => {
     <div class="description">
       <strong>Анонимный доступ к интернету без ограничений</strong><br>
       Введите URL сайта или поисковый запрос (например, "как приготовить яйца"). 
-      Все запросы автоматически направляются через защищенное соединение.
+      Все поисковые запросы выполняются через Bing.
     </div>
   </div>
 
@@ -300,9 +300,9 @@ app.get('/', (req, res) => {
         }
       }
       
-      // Создание поискового URL
+      // Создание поискового URL через Bing
       function createSearchUrl(query) {
-        return 'https://www.google.com/search?q=' + encodeURIComponent(query);
+        return 'https://www.bing.com/search?q=' + encodeURIComponent(query);
       }
       
       // Переход в полноэкранный режим
@@ -372,11 +372,17 @@ app.get('/', (req, res) => {
       
       exitBtn.addEventListener('click', exitFullscreenMode);
       
-      // Загрузка Google при фокусе
+      // Загрузка Bing при фокусе
       urlInput.addEventListener('focus', function() {
         if (!urlInput.value) {
-          urlInput.value = 'https://';
+          urlInput.placeholder = 'Поиск через Bing...';
         }
+      });
+      
+      // Загрузка Bing по умолчанию при клике на лого
+      document.querySelector('.logo').addEventListener('click', function() {
+        urlInput.value = '';
+        loadUrl('https://www.bing.com');
       });
     });
   </script>
