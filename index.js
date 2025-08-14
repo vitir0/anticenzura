@@ -4,9 +4,9 @@ const cheerio = require('cheerio');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Улучшенная конфигурация axios
+// Конфигурация axios для имитации реального браузера
 const axiosInstance = axios.create({
-  timeout: 60000,
+  timeout: 10000,
   headers: {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
@@ -15,7 +15,7 @@ const axiosInstance = axios.create({
     'Connection': 'keep-alive',
     'Upgrade-Insecure-Requests': '1',
     'Cache-Control': 'max-age=0',
-    'Referer': 'https://www.bing.com/',
+    'Referer': 'https://www.google.com/',
     'Sec-Fetch-Dest': 'document',
     'Sec-Fetch-Mode': 'navigate',
     'Sec-Fetch-Site': 'cross-site',
@@ -23,6 +23,10 @@ const axiosInstance = axios.create({
   }
 });
 
+// Middleware для статических файлов
+app.use('/assets', express.static('public'));
+
+// Главная страница
 app.get('/', (req, res) => {
   res.send(`
 <!DOCTYPE html>
@@ -30,7 +34,7 @@ app.get('/', (req, res) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🛡️ anticenzura - Обход цензуры</title>
+  <title>🚀 Freedom Proxy - Обход блокировок</title>
   <style>
     * {
       box-sizing: border-box;
@@ -241,7 +245,7 @@ app.get('/', (req, res) => {
 <body>
   <div class="search-container">
     <div class="logo">🛡️</div>
-    <h1>anticenzura - Обход цензуры</h1>
+    <h1>Freedom Proxy - Обход блокировок</h1>
     
     <div class="search-box">
       <input 
@@ -255,9 +259,8 @@ app.get('/', (req, res) => {
     </div>
 
     <div class="description">
-      <strong>Анонимный доступ к интернету без ограничений</strong><br>
-      Введите URL сайта (например, "bing.com"). 
-      Все поисковые запросы выполняются через Bing
+      <strong>100% рабочий доступ к Instagram, YouTube и другим сайтам</strong><br>
+      Просто введите адрес или поисковый запрос и нажмите стрелку
     </div>
   </div>
 
@@ -291,7 +294,6 @@ app.get('/', (req, res) => {
       const body = document.body;
       const currentUrl = document.getElementById('currentUrl');
       
-      // Показать ошибку
       function showError(message) {
         errorContainer.textContent = message;
         errorContainer.style.display = 'block';
@@ -302,7 +304,6 @@ app.get('/', (req, res) => {
         }, 5000);
       }
       
-      // Проверка URL
       function isUrl(str) {
         try {
           new URL(str);
@@ -312,24 +313,20 @@ app.get('/', (req, res) => {
         }
       }
       
-      // Создание поискового URL через Bing
       function createSearchUrl(query) {
         return 'https://www.bing.com/search?q=' + encodeURIComponent(query);
       }
       
-      // Переход в полноэкранный режим
       function enterFullscreenMode(url) {
         body.classList.add('fullscreen-mode');
         currentUrl.textContent = url;
       }
       
-      // Выход из полноэкранного режима
       function exitFullscreenMode() {
         body.classList.remove('fullscreen-mode');
         proxyFrame.src = 'about:blank';
       }
       
-      // Загрузка URL
       function loadUrl(input) {
         loading.style.display = 'flex';
         errorContainer.style.display = 'none';
@@ -341,27 +338,21 @@ app.get('/', (req, res) => {
           return;
         }
         
-        // Автокоррекция URL
         if (!targetUrl.startsWith('http') && !targetUrl.includes('://')) {
           targetUrl = 'https://' + targetUrl;
         }
         
-        // Если это не URL, а поисковый запрос
         if (!isUrl(targetUrl)) {
           targetUrl = createSearchUrl(targetUrl);
         }
         
-        // Показываем URL в интерфейсе
         currentUrl.textContent = targetUrl;
-        
-        // Входим в полноэкранный режим
         enterFullscreenMode(targetUrl);
         
-        // Загружаем контент через специальный прокси
-        proxyFrame.src = '/proxy-frame?url=' + encodeURIComponent(targetUrl);
+        // Используем прямой доступ через iframe
+        proxyFrame.src = '/direct?url=' + encodeURIComponent(targetUrl);
       }
       
-      // Обработчики событий
       openBtn.addEventListener('click', function() {
         const input = urlInput.value;
         loadUrl(input);
@@ -379,21 +370,14 @@ app.get('/', (req, res) => {
       });
       
       proxyFrame.addEventListener('error', function() {
-        showError('Ошибка загрузки сайта. Возможно, ресурс заблокирован или недоступен.');
+        showError('Ошибка загрузки сайта. Попробуйте другой URL или повторите позже.');
       });
       
       exitBtn.addEventListener('click', exitFullscreenMode);
       
-      // Загрузка Bing при фокусе
-      urlInput.addEventListener('focus', function() {
-        if (!urlInput.value) {
-          urlInput.placeholder = 'Поиск через Bing...';
-        }
-      });
-      
-      // Загрузка Bing по умолчанию при клике на лого
+      // Загрузка Bing при клике на лого
       document.querySelector('.logo').addEventListener('click', function() {
-        urlInput.value = '';
+        urlInput.value = 'https://www.bing.com';
         loadUrl('https://www.bing.com');
       });
     });
@@ -403,206 +387,106 @@ app.get('/', (req, res) => {
   `);
 });
 
-// Новый обработчик для iframe
-app.get('/proxy-frame', async (req, res) => {
-  try {
-    const targetUrl = req.query.url;
-    if (!targetUrl) return res.redirect('/');
-
-    const finalUrl = targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`;
-    
-    // Загружаем HTML
-    const response = await axiosInstance.get(finalUrl, {
-      responseType: 'text',
-      maxRedirects: 10,
-      validateStatus: () => true
-    });
-    
-    let html = response.data;
-    
-    // Создаем базовый тег для правильного разрешения относительных путей
-    const baseTag = `<base href="${finalUrl}">`;
-    
-    // Удаляем существующие CSP и X-Frame-Options
-    html = html
-      .replace(/<meta[^>]+http-equiv=["']?Content-Security-Policy["']?[^>]*>/gi, '')
-      .replace(/<meta[^>]+http-equiv=["']?X-Frame-Options["']?[^>]*>/gi, '');
-    
-    // Добавляем базовый тег после head
-    html = html.replace(/<head(.*?)>/i, `<head$1>${baseTag}`);
-    
-    // Добавляем скрипт для обработки ссылок
-    const linkHandlerScript = `
+// Прямой доступ к сайтам через iframe
+app.get('/direct', (req, res) => {
+  const targetUrl = req.query.url;
+  if (!targetUrl) return res.redirect('/');
+  
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <base href="${targetUrl}">
+      <meta charset="UTF-8">
+      <meta name="referrer" content="no-referrer">
+      <style>
+        body, html {
+          margin: 0;
+          padding: 0;
+          width: 100%;
+          height: 100%;
+          overflow: hidden;
+        }
+        iframe {
+          width: 100%;
+          height: 100%;
+          border: none;
+        }
+      </style>
       <script>
-        document.addEventListener('DOMContentLoaded', function() {
-          // Обработка всех ссылок
-          document.addEventListener('click', function(e) {
-            let target = e.target;
-            while (target && target.tagName !== 'A') {
-              target = target.parentNode;
-            }
-            
-            if (target && target.tagName === 'A' && target.href) {
-              e.preventDefault();
-              window.top.postMessage({
-                type: 'NAVIGATE',
-                url: target.href
-              }, '*');
-            }
-          });
-          
-          // Обработка форм
-          document.addEventListener('submit', function(e) {
-            if (e.target.tagName === 'FORM') {
-              e.preventDefault();
-              const form = e.target;
-              const url = form.action || window.location.href;
-              const method = form.method || 'GET';
-              
-              if (method.toUpperCase() === 'GET') {
-                window.top.postMessage({
-                  type: 'NAVIGATE',
-                  url: url + (url.includes('?') ? '&' : '?' + new URLSearchParams(new FormData(form))
-                }, '*');
-              } else {
-                // Для POST запросов создаем скрытый iframe
-                const iframe = document.createElement('iframe');
-                iframe.name = 'form-submit-iframe';
-                iframe.style.display = 'none';
-                document.body.appendChild(iframe);
-                
-                form.target = 'form-submit-iframe';
-                form.submit();
-                
-                iframe.onload = function() {
-                  window.top.postMessage({
-                    type: 'NAVIGATE',
-                    url: iframe.contentWindow.location.href
-                  }, '*');
-                  document.body.removeChild(iframe);
-                };
-              }
-            }
-          });
-        });
+        // Перенаправление на целевой URL
+        window.location.href = "${targetUrl}";
       </script>
-    `;
-    
-    // Добавляем скрипт перед закрывающим тегом body
-    if (html.includes('</body>')) {
-      html = html.replace('</body>', linkHandlerScript + '</body>');
-    } else {
-      html += linkHandlerScript;
-    }
-    
-    res.set('Content-Type', 'text/html');
-    res.send(html);
-    
-  } catch (error) {
-    res.status(500).send(`
-      <html>
-        <body style="color: white; background: black; padding: 20px; text-align: center;">
-          <h3>Ошибка прокси</h3>
-          <p>${error.message}</p>
-          <p><a href="/" style="color: #4da6ff;">Вернуться на главную</a></p>
-        </body>
-      </html>
-    `);
-  }
+    </head>
+    <body>
+      <iframe 
+        src="${targetUrl}"
+        sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"
+        referrerpolicy="no-referrer"
+      ></iframe>
+    </body>
+    </html>
+  `);
 });
 
-// Обработчик для ресурсов
+// Прокси для ресурсов
 app.get('/proxy-resource', async (req, res) => {
   try {
-    const targetUrl = req.query.url;
-    if (!targetUrl) return res.status(400).send('Invalid URL');
-
+    const targetUrl = decodeURIComponent(req.query.url);
     const response = await axiosInstance.get(targetUrl, {
       responseType: 'arraybuffer',
-      maxRedirects: 10,
-      validateStatus: () => true
+      headers: {
+        'Referer': new URL(targetUrl).origin,
+        'Origin': new URL(targetUrl).origin
+      }
     });
     
-    // Определяем Content-Type
-    const contentType = response.headers['content-type'] || 'application/octet-stream';
-    
-    // Устанавливаем заголовки CORS
-    res.set('Access-Control-Allow-Origin', '*');
-    res.set('Access-Control-Allow-Methods', 'GET');
+    const contentType = response.headers['content-type'];
     res.set('Content-Type', contentType);
     res.send(response.data);
-    
   } catch (error) {
     res.status(500).send('Error loading resource');
   }
 });
 
-// Обработчик для всех путей
+// Обработчик для всех остальных запросов
 app.get('*', async (req, res) => {
   try {
-    const fullUrl = req.originalUrl.substring(1);
-    const decodedUrl = decodeURIComponent(fullUrl);
+    const originalUrl = req.originalUrl.substring(1);
+    const targetUrl = decodeURIComponent(originalUrl);
     
-    if (decodedUrl === '') {
-      return res.redirect('/');
-    }
+    if (targetUrl === '') return res.redirect('/');
     
-    // Прямые запросы к ресурсам
-    if (decodedUrl.startsWith('proxy-resource?')) {
-      return handleDirectRequest(res, decodedUrl);
-    }
+    console.log('Проксирование URL:', targetUrl);
     
-    // Для всех остальных запросов используем iframe прокси
-    return handleProxyRequest(req, res);
-    
-  } catch (error) {
-    res.status(500).send(`
-      <html>
-        <body style="color: white; background: black; padding: 20px; text-align: center;">
-          <h3>Ошибка прокси</h3>
-          <p>${error.message}</p>
-          <p><a href="/" style="color: #4da6ff;">Вернуться на главную</a></p>
-        </body>
-      </html>
-    `);
-  }
-});
-
-// Улучшенный обработчик прокси
-async function handleProxyRequest(req, res) {
-  try {
-    const targetUrl = req.originalUrl.replace('/proxy?url=', '');
-    if (!targetUrl) return res.redirect('/');
-
-    const finalUrl = targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`;
-    
-    const response = await axiosInstance.get(finalUrl, {
+    const response = await axiosInstance.get(targetUrl, {
       responseType: 'arraybuffer',
-      maxRedirects: 10,
-      validateStatus: () => true
+      headers: {
+        'Referer': new URL(targetUrl).origin,
+        'Origin': new URL(targetUrl).origin
+      }
     });
     
     const contentType = response.headers['content-type'] || 'text/html';
     
-    // Для HTML используем специальную обработку
     if (contentType.includes('text/html')) {
       let html = response.data.toString('utf-8');
       const $ = cheerio.load(html);
       
-      // Удаляем проблемные теги
-      $('meta[http-equiv="Content-Security-Policy"], meta[http-equiv="content-security-policy"]').remove();
+      // Удаление проблемных тегов
+      $('meta[http-equiv="Content-Security-Policy"]').remove();
       $('meta[http-equiv="X-Frame-Options"]').remove();
       
-      // Добавляем базовый тег
-      $('head').prepend(`<base href="${finalUrl}">`);
+      // Добавление базового тега
+      $('head').prepend(`<base href="${targetUrl}">`);
       
-      // Обработка всех ссылок
+      // Обработка ссылок
       $('a[href]').each((i, el) => {
         const href = $(el).attr('href');
         if (href && !href.startsWith('#')) {
           try {
-            const absoluteUrl = new URL(href, finalUrl).href;
-            $(el).attr('href', `/proxy?url=${encodeURIComponent(absoluteUrl)}`);
+            const absoluteUrl = new URL(href, targetUrl).href;
+            $(el).attr('href', `/${encodeURIComponent(absoluteUrl)}`);
           } catch (e) {}
         }
       });
@@ -612,27 +496,26 @@ async function handleProxyRequest(req, res) {
         const action = $(el).attr('action');
         if (action) {
           try {
-            const absoluteUrl = new URL(action, finalUrl).href;
-            $(el).attr('action', `/proxy?url=${encodeURIComponent(absoluteUrl)}`);
+            const absoluteUrl = new URL(action, targetUrl).href;
+            $(el).attr('action', `/${encodeURIComponent(absoluteUrl)}`);
           } catch (e) {}
         }
       });
       
       // Обработка ресурсов
-      const resourceAttrs = ['src', 'href', 'srcset', 'data-src', 'content', 'poster'];
-      
+      const resourceAttrs = ['src', 'href', 'srcset', 'data-src', 'content'];
       $('*').each((i, el) => {
         const $el = $(el);
         resourceAttrs.forEach(attr => {
           const value = $el.attr(attr);
           if (value) {
             try {
-              // Особый случай для srcset
+              // Обработка srcset
               if (attr === 'srcset') {
                 const newValue = value.split(',').map(part => {
                   const [url, descriptor] = part.trim().split(/\s+/);
                   try {
-                    const absoluteUrl = new URL(url, finalUrl).href;
+                    const absoluteUrl = new URL(url, targetUrl).href;
                     return `/proxy-resource?url=${encodeURIComponent(absoluteUrl)}${descriptor ? ' ' + descriptor : ''}`;
                   } catch (e) {
                     return part;
@@ -640,31 +523,68 @@ async function handleProxyRequest(req, res) {
                 }).join(', ');
                 $el.attr(attr, newValue);
               } else {
-                try {
-                  const absoluteUrl = new URL(value, finalUrl).href;
-                  $el.attr(attr, `/proxy-resource?url=${encodeURIComponent(absoluteUrl)}`);
-                } catch (e) {}
+                const absoluteUrl = new URL(value, targetUrl).href;
+                $el.attr(attr, `/proxy-resource?url=${encodeURIComponent(absoluteUrl)}`);
               }
-            } catch (e) {
-              // Игнорируем ошибки
-            }
+            } catch (e) {}
           }
         });
       });
       
-      // Фикс для Instagram
-      if (finalUrl.includes('instagram.com')) {
+      // Специальные фиксы для Instagram
+      if (targetUrl.includes('instagram.com')) {
         $('head').append(`
-          <meta name="referrer" content="no-referrer">
           <script>
-            // Фикс для загрузки контента
+            // Фикс для Instagram
             document.addEventListener('DOMContentLoaded', function() {
-              setTimeout(function() {
-                document.querySelectorAll('img, video').forEach(el => {
-                  if (el.src) el.src = el.src;
+              // Принудительная перезагрузка ресурсов
+              setTimeout(() => {
+                document.querySelectorAll('img, video, source').forEach(el => {
+                  if (el.src) el.src = el.src + '?t=' + Date.now();
                   if (el.srcset) el.srcset = el.srcset;
                 });
               }, 1000);
+              
+              // Обход блокировки скриптов
+              const originalCreateElement = document.createElement;
+              document.createElement = function(tagName) {
+                const el = originalCreateElement.call(document, tagName);
+                if (tagName.toLowerCase() === 'script') {
+                  el.setAttribute('crossorigin', 'anonymous');
+                }
+                return el;
+              };
+            });
+          </script>
+        `);
+      }
+      
+      // Специальные фиксы для YouTube
+      if (targetUrl.includes('youtube.com') || targetUrl.includes('youtu.be')) {
+        $('head').append(`
+          <script>
+            // Фикс для YouTube
+            document.addEventListener('DOMContentLoaded', function() {
+              // Перехват кликов
+              document.addEventListener('click', function(e) {
+                let target = e.target;
+                while (target && target.tagName !== 'A' && target.tagName !== 'BUTTON') {
+                  target = target.parentNode;
+                }
+                
+                if (target && target.href) {
+                  e.preventDefault();
+                  window.location.href = target.href;
+                }
+              });
+              
+              // Принудительная загрузка плеера
+              setTimeout(() => {
+                const players = document.querySelectorAll('video, iframe');
+                players.forEach(player => {
+                  player.src = player.src;
+                });
+              }, 1500);
             });
           </script>
         `);
@@ -673,7 +593,6 @@ async function handleProxyRequest(req, res) {
       res.set('Content-Type', contentType);
       res.send($.html());
     } else {
-      // Для не-HTML контента
       res.set('Content-Type', contentType);
       res.send(response.data);
     }
@@ -688,29 +607,10 @@ async function handleProxyRequest(req, res) {
       </html>
     `);
   }
-}
-
-// Обработчик прямых запросов к ресурсам
-async function handleDirectRequest(res, decodedUrl) {
-  try {
-    const urlParam = decodedUrl.split('url=')[1];
-    const targetUrl = decodeURIComponent(urlParam);
-    
-    const response = await axiosInstance.get(targetUrl, {
-      responseType: 'arraybuffer',
-      maxRedirects: 10,
-      validateStatus: () => true
-    });
-    
-    const contentType = response.headers['content-type'] || 'application/octet-stream';
-    
-    res.set('Content-Type', contentType);
-    res.send(response.data);
-  } catch (error) {
-    res.status(500).send('Error loading resource');
-  }
-}
+});
 
 app.listen(PORT, () => {
   console.log(`Сервер запущен: http://localhost:${PORT}`);
+  console.log('Для доступа к Instagram: http://localhost:' + PORT + '/https://instagram.com');
+  console.log('Для доступа к YouTube: http://localhost:' + PORT + '/https://youtube.com');
 });
