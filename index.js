@@ -29,178 +29,242 @@ app.get('/', (req, res) => {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     body {
-      background: linear-gradient(135deg, #000000, #1a1a1a);
+      background: #000;
       color: #f0f0f0;
       min-height: 100vh;
-      padding: 20px;
-      background-attachment: fixed;
+      overflow: hidden;
     }
-    .container {
-      max-width: 1000px;
-      margin: 20px auto;
-      background: rgba(10, 10, 10, 0.95);
-      border-radius: 8px;
-      padding: 25px;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
-      border: 1px solid #333;
+    .search-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: linear-gradient(135deg, #0a0a0a, #1a1a1a);
+      transition: all 0.3s ease;
     }
-    header {
-      text-align: center;
-      margin-bottom: 25px;
-      padding-bottom: 15px;
-      border-bottom: 1px solid #333;
+    .fullscreen-mode .search-container {
+      transform: translateY(-100%);
+    }
+    .logo {
+      font-size: 60px;
+      margin-bottom: 20px;
+      text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
     }
     h1 {
-      font-size: 28px;
-      margin-bottom: 5px;
+      font-size: 32px;
+      margin-bottom: 30px;
+      text-align: center;
       color: #fff;
       text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
     }
-    .subtitle {
-      color: #bbb;
-      font-size: 16px;
-      margin-bottom: 15px;
-    }
-    .form-group {
-      margin-bottom: 20px;
+    .search-box {
       display: flex;
-      gap: 10px;
+      width: 80%;
+      max-width: 700px;
+      margin-bottom: 20px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
     }
-    input[type="text"] {
+    #urlInput {
       flex: 1;
-      padding: 14px;
-      font-size: 16px;
-      border: 1px solid #333;
-      border-radius: 6px;
+      padding: 18px 25px;
+      font-size: 18px;
+      border: none;
+      border-radius: 50px 0 0 50px;
       background: rgba(30, 30, 30, 0.9);
       color: #fff;
       outline: none;
       transition: all 0.3s;
     }
-    input[type="text"]:focus {
-      border-color: #555;
-      box-shadow: 0 0 0 2px rgba(100, 100, 100, 0.3);
+    #urlInput:focus {
+      background: rgba(40, 40, 40, 0.95);
     }
     input::placeholder {
       color: #777;
     }
-    button {
-      padding: 14px 22px;
+    #openBtn {
+      padding: 0 35px;
       background: linear-gradient(to bottom, #222, #111);
       color: #fff;
-      border: 1px solid #333;
-      border-radius: 6px;
-      font-size: 16px;
+      border: none;
+      border-radius: 0 50px 50px 0;
+      font-size: 18px;
       font-weight: 600;
       cursor: pointer;
-      min-width: 100px;
       transition: all 0.3s;
-      text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    button:hover {
+    #openBtn:hover {
       background: linear-gradient(to bottom, #333, #222);
-      border-color: #444;
     }
-    button:active {
+    #openBtn:active {
       background: linear-gradient(to bottom, #111, #000);
       transform: translateY(1px);
     }
-    .controls {
+    .description {
+      max-width: 600px;
+      text-align: center;
+      color: #aaa;
+      margin-top: 30px;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    .description strong {
+      color: #ddd;
+    }
+    
+    /* Fullscreen mode */
+    .proxy-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      flex-direction: column;
+      background: #000;
+      z-index: 100;
+    }
+    .fullscreen-mode .proxy-container {
       display: flex;
-      gap: 10px;
-      margin-bottom: 15px;
+    }
+    .proxy-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      background: rgba(20, 20, 20, 0.9);
+      border-bottom: 1px solid #333;
+    }
+    .current-url {
+      font-size: 14px;
+      color: #aaa;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 80%;
+    }
+    #exitBtn {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+    }
+    #exitBtn:hover {
+      background: rgba(255, 255, 255, 0.2);
     }
     iframe {
+      flex: 1;
       width: 100%;
-      height: 70vh;
-      border: 1px solid #333;
-      border-radius: 6px;
+      border: none;
       background: #000;
     }
-    .error {
-      color: #ff4d4d;
-      text-align: center;
-      padding: 15px;
-      margin-top: 20px;
-      border-radius: 6px;
-      background: rgba(255, 0, 0, 0.1);
-      border: 1px solid rgba(255, 0, 0, 0.2);
-      display: none;
-    }
+    
     .loading {
-      text-align: center;
-      padding: 20px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 200;
       display: none;
     }
     .loader {
       border: 4px solid rgba(255, 255, 255, 0.1);
       border-top: 4px solid #fff;
       border-radius: 50%;
-      width: 40px;
-      height: 40px;
+      width: 60px;
+      height: 60px;
       animation: spin 1s linear infinite;
-      margin: 0 auto 15px;
+      margin-bottom: 20px;
+    }
+    .loading-text {
+      font-size: 18px;
+      color: #aaa;
     }
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-    .logo {
-      font-size: 36px;
-      margin-bottom: 10px;
-      text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+    
+    .error {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 20px;
+      background: rgba(150, 0, 0, 0.8);
+      color: white;
+      text-align: center;
+      z-index: 150;
+      display: none;
     }
-    .info {
-      background: rgba(30, 30, 30, 0.7);
-      border-left: 4px solid #555;
-      padding: 12px;
-      margin-top: 20px;
-      border-radius: 0 6px 6px 0;
-      font-size: 14px;
-      color: #aaa;
-    }
-    .info strong {
-      color: #ddd;
+    
+    @media (max-width: 768px) {
+      .search-box {
+        width: 95%;
+      }
+      h1 {
+        font-size: 24px;
+      }
+      .logo {
+        font-size: 45px;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div class="logo">🛡️</div>
-      <h1>Freedom Proxy</h1>
-      <div class="subtitle">Анонимный доступ к интернету без ограничений</div>
-    </header>
+  <div class="search-container">
+    <div class="logo">🛡️</div>
+    <h1>Freedom Proxy - Обход цензуры</h1>
     
-    <div class="form-group">
+    <div class="search-box">
       <input 
         type="text" 
         id="urlInput" 
         placeholder="Введите URL или поисковый запрос..." 
         autocomplete="off"
+        autofocus
       >
-      <button id="openBtn">Перейти</button>
+      <button id="openBtn">→</button>
     </div>
 
-    <div class="loading" id="loading">
-      <div class="loader"></div>
-      <p>Загрузка контента через защищенное соединение...</p>
-    </div>
-
-    <div class="controls">
-      <button id="newTabBtn">Открыть напрямую</button>
-      <button id="refreshBtn">Обновить</button>
-    </div>
-
-    <iframe id="proxyFrame" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
-
-    <div class="error" id="errorContainer"></div>
-    
-    <div class="info">
-      <strong>Как использовать:</strong> Введите URL сайта или поисковый запрос (например, "как приготовить яйца"). 
+    <div class="description">
+      <strong>Анонимный доступ к интернету без ограничений</strong><br>
+      Введите URL сайта или поисковый запрос (например, "как приготовить яйца"). 
       Все запросы автоматически направляются через защищенное соединение.
     </div>
   </div>
+
+  <div class="proxy-container" id="proxyContainer">
+    <div class="proxy-header">
+      <div class="current-url" id="currentUrl"></div>
+      <button id="exitBtn">✕</button>
+    </div>
+    <iframe id="proxyFrame" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
+  </div>
+
+  <div class="loading" id="loading">
+    <div class="loader"></div>
+    <div class="loading-text">Загрузка через защищенное соединение...</div>
+  </div>
+
+  <div class="error" id="errorContainer"></div>
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -209,15 +273,24 @@ app.get('/', (req, res) => {
       const proxyFrame = document.getElementById('proxyFrame');
       const loading = document.getElementById('loading');
       const errorContainer = document.getElementById('errorContainer');
-      const newTabBtn = document.getElementById('newTabBtn');
-      const refreshBtn = document.getElementById('refreshBtn');
+      const exitBtn = document.getElementById('exitBtn');
+      const proxyContainer = document.getElementById('proxyContainer');
+      const searchContainer = document.querySelector('.search-container');
+      const body = document.body;
+      const currentUrl = document.getElementById('currentUrl');
       
+      // Показать ошибку
       function showError(message) {
         errorContainer.textContent = message;
         errorContainer.style.display = 'block';
         loading.style.display = 'none';
+        
+        setTimeout(() => {
+          errorContainer.style.display = 'none';
+        }, 5000);
       }
       
+      // Проверка URL
       function isUrl(str) {
         try {
           new URL(str);
@@ -227,16 +300,26 @@ app.get('/', (req, res) => {
         }
       }
       
-      function isSearchQuery(str) {
-        return !isUrl(str) && str.trim().length > 0;
-      }
-      
-      function createGoogleSearchUrl(query) {
+      // Создание поискового URL
+      function createSearchUrl(query) {
         return 'https://www.google.com/search?q=' + encodeURIComponent(query);
       }
       
+      // Переход в полноэкранный режим
+      function enterFullscreenMode(url) {
+        body.classList.add('fullscreen-mode');
+        currentUrl.textContent = url;
+      }
+      
+      // Выход из полноэкранного режима
+      function exitFullscreenMode() {
+        body.classList.remove('fullscreen-mode');
+        proxyFrame.src = 'about:blank';
+      }
+      
+      // Загрузка URL
       function loadUrl(input) {
-        loading.style.display = 'block';
+        loading.style.display = 'flex';
         errorContainer.style.display = 'none';
         
         let targetUrl = input.trim();
@@ -252,13 +335,21 @@ app.get('/', (req, res) => {
         }
         
         // Если это не URL, а поисковый запрос
-        if (isSearchQuery(targetUrl)) {
-          targetUrl = createGoogleSearchUrl(targetUrl);
+        if (!isUrl(targetUrl)) {
+          targetUrl = createSearchUrl(targetUrl);
         }
         
+        // Показываем URL в интерфейсе
+        currentUrl.textContent = targetUrl;
+        
+        // Входим в полноэкранный режим
+        enterFullscreenMode(targetUrl);
+        
+        // Загружаем контент
         proxyFrame.src = '/proxy?url=' + encodeURIComponent(targetUrl);
       }
       
+      // Обработчики событий
       openBtn.addEventListener('click', function() {
         const input = urlInput.value;
         loadUrl(input);
@@ -279,23 +370,12 @@ app.get('/', (req, res) => {
         showError('Ошибка загрузки сайта. Возможно, ресурс заблокирован или недоступен.');
       });
       
-      newTabBtn.addEventListener('click', function() {
-        const input = urlInput.value.trim();
-        if (!input) return;
-        
-        let targetUrl = input;
-        if (isSearchQuery(targetUrl)) {
-          targetUrl = createGoogleSearchUrl(targetUrl);
-        } else if (!targetUrl.startsWith('http')) {
-          targetUrl = 'https://' + targetUrl;
-        }
-        
-        window.open(targetUrl, '_blank');
-      });
+      exitBtn.addEventListener('click', exitFullscreenMode);
       
-      refreshBtn.addEventListener('click', function() {
-        if (proxyFrame.src && proxyFrame.src !== 'about:blank') {
-          proxyFrame.contentWindow.location.reload();
+      // Загрузка Google при фокусе
+      urlInput.addEventListener('focus', function() {
+        if (!urlInput.value) {
+          urlInput.value = 'https://';
         }
       });
     });
@@ -310,8 +390,6 @@ app.get('*', async (req, res) => {
     const fullUrl = req.originalUrl.substring(1);
     const decodedUrl = decodeURIComponent(fullUrl);
     
-    console.log('Запрос к прокси:', decodedUrl);
-    
     if (decodedUrl === '') {
       return res.redirect('/');
     }
@@ -323,7 +401,6 @@ app.get('*', async (req, res) => {
     return handleDirectRequest(res, decodedUrl);
     
   } catch (error) {
-    console.error('Ошибка обработки запроса:', error);
     res.status(500).send(`
       <div style="color: white; text-align: center; padding: 20px; background: rgba(0,0,0,0.8);">
         <h3>Ошибка прокси</h3>
@@ -340,8 +417,6 @@ async function handleProxyRequest(req, res) {
     if (!targetUrl) return res.redirect('/');
 
     const finalUrl = targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`;
-    
-    console.log('Проксирование URL:', finalUrl);
     
     const response = await axiosInstance.get(finalUrl, {
       responseType: 'arraybuffer',
@@ -393,7 +468,6 @@ async function handleProxyRequest(req, res) {
       res.send(response.data);
     }
   } catch (error) {
-    console.error('Ошибка проксирования:', error.message);
     res.status(500).send(`
       <div style="color: white; text-align: center; padding: 20px; background: rgba(0,0,0,0.8);">
         <h3>Ошибка прокси</h3>
@@ -406,8 +480,6 @@ async function handleProxyRequest(req, res) {
 
 async function handleDirectRequest(res, decodedUrl) {
   try {
-    console.log('Прямой запрос к:', decodedUrl);
-    
     const response = await axiosInstance.get(decodedUrl, {
       responseType: 'arraybuffer',
       maxRedirects: 10,
@@ -419,7 +491,6 @@ async function handleDirectRequest(res, decodedUrl) {
     res.set('Content-Type', contentType);
     res.send(response.data);
   } catch (error) {
-    console.error('Ошибка прямого запроса:', error.message);
     res.status(500).send(`
       <div style="color: white; text-align: center; padding: 20px; background: rgba(0,0,0,0.8);">
         <h3>Ошибка загрузки ресурса</h3>
